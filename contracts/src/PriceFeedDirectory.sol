@@ -40,9 +40,9 @@ contract PriceFeedDirectory {
     //        ERC-20 contract without the leading "0x" or "native", if it's a
     //        native token.
     //        Examples:
-    //          - keccak256("bitstamp.net/btc/usd")
-    //          - keccak256("uniswap.org/polygon/native/1bfd67037b42cf73acf2047067bd4f2c47d9bfd6")
-    //          - keccak256("uniswap.org/base/833589fCD6eDb6E08f4c7C32D4f71b54bdA02913/1bfd67037b42cf73acf2047067bd4f2c47d9bfd6")
+    //          - "bitstamp.net/btc/usd"
+    //          - "uniswap.org/polygon/native/1bfd67037b42cf73acf2047067bd4f2c47d9bfd6"
+    //          - "uniswap.org/base/833589fCD6eDb6E08f4c7C32D4f71b54bdA02913/1bfd67037b42cf73acf2047067bd4f2c47d9bfd6"
     // @param agg (optional) App-specific price aggregator smart contract. If zero, a new SimpleAggregator instance will be created.
     // @param discoverable Add the price aggregator contract to a public list of discoverable price aggregators.
     function addFeed(string calldata providerChainPair, RoflAggregatorV3Interface agg, bool discoverable) external {
