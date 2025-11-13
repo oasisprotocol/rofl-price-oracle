@@ -72,7 +72,7 @@ def main():
     if arguments.price_feed_address is None or len(arguments.price_feed_address) == 0:
         arguments.price_feed_address = DEFAULT_PRICE_FEED_ADDRESS[arguments.network]
 
-    print(f"Starting price oracle service. Using aggregator contract {arguments.address} and price feed directory {arguments.price_feed_address} on {arguments.network}. Pair(s): {arguments.pair}. Fetch period: {arguments.fetch_period}s, Submit period: {arguments.submit_period}s.")
+    print(f"Starting price oracle service. Using aggregator contract(s) {arguments.address} and price feed directory {arguments.price_feed_address} on {arguments.network}. Pair(s): {arguments.pair}. Fetch period: {arguments.fetch_period}s, Submit period: {arguments.submit_period}s.")
 
     price_oracle = PriceOracle(
         arguments.address,

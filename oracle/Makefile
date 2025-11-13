@@ -7,7 +7,7 @@ install:
 
 # Run tests
 test:
-	$(PYTHON) -m unittest discover -s tests
+	$(PYTHON) -m unittest discover -s tests -t ..
 
 # Clean up build artifacts
 clean:

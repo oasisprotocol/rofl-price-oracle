@@ -2,7 +2,6 @@ import asyncio
 import requests
 import time
 from web3 import Web3
-from web3.contract import Contract
 
 from .ContractUtility import ContractUtility
 from .RoflUtility import bech32_to_bytes
@@ -187,6 +186,7 @@ class PriceOracle:
 
         contract = self.w3.eth.contract(address=address, abi=self.contract_abi, bytecode=self.contract_bytecode)
         self.contracts[pair] = contract
+        print(f"Detected aggregator contract {self.contracts[pair].address} for {pair}")
 
         # Sanity check.
         print("decimals:", contract.functions.decimals().call())
@@ -216,7 +216,6 @@ class PriceOracle:
 
         self.detect_contract(pair, app_id_bytes)
         if pair in self.contracts:
-            print(f"Detected aggregator contract {self.contracts[pair].address} for {pair}")
             return
 
         # Deploy the contract implicitly by calling add_feed().

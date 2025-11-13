@@ -1,6 +1,7 @@
 import cbor2
 import httpx
 import json
+import time
 import typing
 from web3.types import TxParams
 
@@ -25,9 +26,14 @@ class RoflUtilityAppd(RoflUtility):
         client = httpx.Client(transport=transport)
 
         url = self.url if self.url and self.url.startswith('http') else "http://localhost"
-        print(f"  Getting {params} from {url+path}")
-        response = client.get(url + path, params=params, timeout=None)
-        response.raise_for_status()
+        while True:
+            print(f"  Getting {params} from {url+path}")
+            response = client.get(url + path, params=params, timeout=None)
+            print(f"  Response: {response.status_code} {response.reason_phrase}")
+            if response.is_success:
+                break
+            time.sleep(1)
+
         return response
 
     def _appd_post(self, path: str, payload: typing.Any) -> typing.Any:
@@ -42,9 +48,14 @@ class RoflUtilityAppd(RoflUtility):
         client = httpx.Client(transport=transport)
 
         url = self.url if self.url and self.url.startswith('http') else "http://localhost"
-        print(f"  Posting {json.dumps(payload)} to {url+path}")
-        response = client.post(url + path, json=payload, timeout=None)
-        response.raise_for_status()
+        while True:
+            print(f"  Posting {json.dumps(payload)} to {url+path}")
+            response = client.post(url + path, json=payload, timeout=None)
+            print(f"  Response: {response.status_code} {response.reason_phrase}")
+            if response.is_success:
+                break
+            time.sleep(1)
+
         return response
 
     def fetch_appid(self) -> str:
@@ -70,15 +81,15 @@ class RoflUtilityAppd(RoflUtility):
                 "data": {
                     "gas_limit": tx["gas"],
                     "value": tx["value"],
-                    "data": tx["data"].lstrip("0x"),
+                    "data": tx["data"][2:] if tx["data"].startswith("0x") else tx["data"]
                 },
             },
-            "encrypted": False,
+            "encrypt": False,
         }
 
-        # Contract create transactions don't have "to", others have it.
-        if tx.get("to"):
-            payload["tx"]["data"]["to"] = tx["to"].lstrip("0x")
+        # Contract create transactions don't have "to". For others, include it.
+        if "to" in tx:
+            payload["tx"]["data"]["to"] = tx["to"][2:] if tx["to"].startswith("0x") else tx["to"]
 
         path = '/rofl/v1/tx/sign-submit'
 
