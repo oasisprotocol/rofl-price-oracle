@@ -2,7 +2,7 @@ services:
   oracle:
     build:
       dockerfile: ./Dockerfile.oracle
-    image: "ghcr.io/matevz/rofl-price-oracle"
+    image: "ghcr.io/rube-de/rofl-price-oracle"
     platform: linux/amd64
     entrypoint: /bin/sh -c 'python main.py --address "${ADDRESS}" --price-feed-address "${PRICE_FEED_ADDRESS}" --network ${NETWORK} --pair ${PAIR} --fetch-period $FETCH_PERIOD --submit-period $SUBMIT_PERIOD --api-key="${API_KEY}"'
     restart: on-failure

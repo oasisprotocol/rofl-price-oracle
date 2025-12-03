@@ -75,21 +75,28 @@ class RoflUtilityAppd(RoflUtility):
         return response["key"]
 
     def submit_tx(self, tx: TxParams) -> typing.Any:
+        # Strip 0x prefix from hex strings and normalize to lowercase
+        data_hex = tx["data"][2:] if str(tx["data"]).startswith("0x") else str(tx["data"])
+        data_hex = data_hex.lower()
+        # For contract creation, to is empty. For calls, strip 0x prefix.
+        to_hex = ""
+        if "to" in tx and tx["to"]:
+            to_hex = tx["to"][2:] if str(tx["to"]).startswith("0x") else str(tx["to"])
+            to_hex = to_hex.lower()
+
         payload = {
             "tx": {
                 "kind": "eth",
                 "data": {
-                    "gas_limit": tx["gas"],
-                    "value": tx["value"],
-                    "data": tx["data"][2:] if tx["data"].startswith("0x") else tx["data"]
+                    "gas_limit": int(tx["gas"]),
+                    "to": to_hex,  # Required field - empty string for contract creation
+                    "value": str(tx["value"]),
+                    # "value": str(int(tx["value"])) if tx.get("value") else "0",  # Must be string
+                    "data": data_hex,
                 },
             },
-            "encrypt": False,
+            "encrypted": False,
         }
-
-        # Contract create transactions don't have "to". For others, include it.
-        if "to" in tx:
-            payload["tx"]["data"]["to"] = tx["to"][2:] if tx["to"].startswith("0x") else tx["to"]
 
         path = '/rofl/v1/tx/sign-submit'
 

@@ -1,11 +1,18 @@
 FROM ghcr.io/foundry-rs/foundry:latest AS contracts-build
-COPY --chown=foundry ./contracts /contracts
-RUN cd /contracts && forge build
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+USER foundry
+COPY --chown=foundry . /repo
+WORKDIR /repo
+RUN git submodule update --init --recursive
+WORKDIR /repo/contracts
+RUN rm -rf dependencies && forge soldeer install
+RUN forge build
 
 FROM python:alpine3.17
 WORKDIR /oracle
 COPY ./oracle /oracle
-COPY --from=contracts-build /contracts /contracts
+COPY --from=contracts-build /repo/contracts /contracts
 RUN apk update && apk add python3-dev gcc libc-dev
 RUN pip install -r requirements.txt
 ENTRYPOINT ["python", "main.py"]
