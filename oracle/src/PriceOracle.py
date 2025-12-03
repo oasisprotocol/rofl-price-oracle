@@ -258,10 +258,11 @@ class PriceOracle:
                 continue
 
             print(f"{pair} price: ${price:.10f}")
-            obs = (int(price * 10**num_decimals), int(asyncio.get_event_loop().time()))
+            cur_timestamp = int(time.time())
+            obs = (int(price * 10**num_decimals), cur_timestamp)
             observations.append(obs)
 
-            if asyncio.get_event_loop().time() - last_submit > self.submit_period:
+            if cur_timestamp - last_submit > self.submit_period:
                 sorted_observations = sorted(observations)
                 median_price = sorted_observations[int(len(observations)/2)][0]
 
@@ -274,9 +275,9 @@ class PriceOracle:
                     'gasPrice': self.w3.eth.gas_price,
                 })
 
-                last_submit = asyncio.get_event_loop().time()
                 result = self.rofl_utility.submit_tx(tx_params)
                 print(f"Submitting observations. Result: {result}")
+                last_submit = cur_timestamp
                 observations = []
 
             await asyncio.sleep(self.fetch_period)
