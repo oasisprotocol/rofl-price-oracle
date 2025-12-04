@@ -4,16 +4,30 @@ services:
       dockerfile: ./Dockerfile.oracle
     image: "ghcr.io/rube-de/rofl-price-oracle"
     platform: linux/amd64
-    entrypoint: /bin/sh -c 'python main.py --address "${ADDRESS}" --price-feed-address "${PRICE_FEED_ADDRESS}" --network ${NETWORK} --pair ${PAIR} --fetch-period $FETCH_PERIOD --submit-period $SUBMIT_PERIOD --api-key="${API_KEY}"'
+    # Rely on environment variables for configuration; see .env.example
+    # and oracle/main.py for supported settings.
+    entrypoint: /bin/sh -c 'python -m oracle.main'
     restart: on-failure
     environment:
-      - ADDRESS=${ADDRESS}
-      - PRICE_FEED_ADDRESS=${PRICE_FEED_ADDRESS}
+      # Core configuration (all have sensible defaults in oracle/main.py)
       - NETWORK=${NETWORK:-sapphire-testnet}
-      - PAIR=${PAIR:-bitstamp.net/btc/usd}
-      - FETCH_PERIOD=${FETCH_PERIOD:-10}
-      - SUBMIT_PERIOD=${SUBMIT_PERIOD:-60}
-      - API_KEY=${API_KEY}
+      - PAIRS=${PAIRS:-btc/usd,eth/usd,rose/usd}
+      - SOURCES=${SOURCES:-coinbase,kraken,bitstamp,coingecko}
+      - MIN_SOURCES=${MIN_SOURCES:-2}
+      - MAX_DEVIATION_PERCENT=${MAX_DEVIATION_PERCENT:-5.0}
+      - DRIFT_LIMIT_PERCENT=${DRIFT_LIMIT_PERCENT:-10.0}
+      - FETCH_PERIOD=${FETCH_PERIOD:-60}
+      - SUBMIT_PERIOD=${SUBMIT_PERIOD:-300}
+      - FETCH_TIMEOUT=${FETCH_TIMEOUT:-10.0}
+      # Optional addresses (oracle will auto-detect/deploy if unset)
+      - PRICE_FEED_ADDRESS=${PRICE_FEED_ADDRESS}
+      - ADDRESS=${ADDRESS}
+      # API keys: either individual API_KEY_* or aggregated API_KEYS
+      - API_KEYS=${API_KEYS}
+      - API_KEY_COINGECKO=${API_KEY_COINGECKO}
+      - API_KEY_COINMARKETCAP=${API_KEY_COINMARKETCAP}
+      - API_KEY_COINAPI=${API_KEY_COINAPI}
+      - API_KEY_EODHD=${API_KEY_EODHD}
+      - API_KEY_BITQUERY=${API_KEY_BITQUERY}
     volumes:
       - /run/rofl-appd.sock:/run/rofl-appd.sock
-
