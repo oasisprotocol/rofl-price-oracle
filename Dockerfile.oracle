@@ -10,9 +10,19 @@ RUN rm -rf dependencies && forge soldeer install
 RUN forge build
 
 FROM python:alpine3.17
-WORKDIR /oracle
-COPY ./oracle /oracle
-COPY --from=contracts-build /repo/contracts /contracts
+WORKDIR /app
+
+# Copy full repo (Python code, configs, etc.)
+COPY . /app
+
+# Overlay compiled contract artifacts into /app/contracts/out so
+# ContractUtility can find them relative to the repo root.
+COPY --from=contracts-build /repo/contracts/out /app/contracts/out
+
 RUN apk update && apk add python3-dev gcc libc-dev
-RUN pip install -r requirements.txt
-ENTRYPOINT ["python", "main.py"]
+
+# Install the oracle package and its dependencies from pyproject.toml
+RUN pip install .
+
+# CLI entrypoint; compose.yaml can override this if needed
+ENTRYPOINT ["python", "-m", "oracle.main"]
