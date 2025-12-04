@@ -1,2 +1,42 @@
 # Don't copy over rust binaries for testing.
 contracts/dependencies/@oasisprotocol-sapphire-foundry-*/precompiles
+
+# Version control
+.git
+.github
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+rofl_price_oracle.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv
+venv
+.python-version
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Package manager locks (not needed in container)
+uv.lock
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Tests (not needed in production image)
+oracle/tests/
+
+# Documentation
+*.md
+!README.md

@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rofl-price-oracle"
+version = "0.1.0"
+description = "ROFL-powered price oracle that aggregates cryptocurrency prices from multiple off-chain sources and submits to Sapphire smart contracts."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Oasis" }
+]
+dependencies = [
+  "cbor2",
+  "py-solc-x",
+  "oasis-sapphire-py",
+  "httpx",
+  "bech32",
+  "web3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "ruff",
+]
+
+[project.scripts]
+rofl-price-oracle = "oracle.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["oracle*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false

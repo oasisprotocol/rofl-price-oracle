@@ -1,3 +1,20 @@
+Metadata-Version: 2.4
+Name: rofl-price-oracle
+Version: 0.1.0
+Summary: ROFL-powered price oracle that aggregates cryptocurrency prices from multiple off-chain sources and submits to Sapphire smart contracts.
+Author: Oasis
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: cbor2
+Requires-Dist: py-solc-x
+Requires-Dist: oasis-sapphire-py
+Requires-Dist: httpx
+Requires-Dist: bech32
+Requires-Dist: web3
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+
 # Oasis ROFL Price Oracle
 
 A ROFL-powered price oracle that aggregates cryptocurrency prices from multiple
