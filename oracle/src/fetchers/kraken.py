@@ -158,7 +158,8 @@ class KrakenFetcher(BaseFetcher):
                 if pair_data is None:
                     for key in result_data:
                         # Kraken sometimes prefixes with X or Z
-                        if kraken_pair in key or key.replace("X", "").replace("Z", "") == kraken_pair:
+                        normalized = key.replace("X", "").replace("Z", "")
+                        if kraken_pair in key or normalized == kraken_pair:
                             pair_data = result_data[key]
                             break
 

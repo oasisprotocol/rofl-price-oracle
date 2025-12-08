@@ -60,7 +60,8 @@ class CoinMarketCapFetcher(BaseFetcher):
             quote_data = symbol_data.get("quote", {}).get(quote.upper())
             if not quote_data:
                 logger.warning(
-                    f"[coinmarketcap] Quote {quote.upper()} not found for {base.upper()}"
+                    f"[coinmarketcap] Quote {quote.upper()} not found "
+                    f"for {base.upper()}"
                 )
                 return None
 

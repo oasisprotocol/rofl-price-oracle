@@ -62,7 +62,9 @@ class CoinpaprikaFetcher(BaseFetcher):
 
             # Check for error response
             if "error" in data:
-                logger.warning(f"[coinpaprika] API error for {coin_id}: {data['error']}")
+                logger.warning(
+                    f"[coinpaprika] API error for {coin_id}: {data['error']}"
+                )
                 return None
 
             quotes = data.get("quotes", {})

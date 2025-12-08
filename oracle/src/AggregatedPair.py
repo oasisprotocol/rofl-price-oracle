@@ -95,6 +95,7 @@ class AggregatedPair:
         parts = pair_str.lower().split("/")
         if len(parts) != 2:
             raise ValueError(
-                f"Invalid pair format '{pair_str}'. Expected 'base/quote' (e.g., 'btc/usd')"
+                f"Invalid pair format '{pair_str}'. "
+                "Expected 'base/quote' (e.g., 'btc/usd')"
             )
         return cls(parts[0], parts[1])

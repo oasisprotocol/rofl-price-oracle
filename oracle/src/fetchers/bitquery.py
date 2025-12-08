@@ -131,5 +131,6 @@ class BitqueryFetcher(BaseFetcher):
         :returns: True if pair is supported.
         """
         base_supported = base.lower() in self.TOKEN_ADDRESSES
-        quote_supported = quote.lower() in self.TOKEN_ADDRESSES or quote.lower() == "usd"
+        quote_lower = quote.lower()
+        quote_supported = quote_lower in self.TOKEN_ADDRESSES or quote_lower == "usd"
         return base_supported and quote_supported

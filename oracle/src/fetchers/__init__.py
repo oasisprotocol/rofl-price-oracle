@@ -9,7 +9,7 @@ Usage:
 
     # Get list of available fetchers
     available = get_available_fetchers()
-    # ['binance', 'bitstamp', 'bitquery', 'coinapi', 'coinbase', 'coingecko', 'coinmarketcap', 'eodhd', 'kraken']
+    # Returns: ['binance', 'bitstamp', 'bitquery', 'coinapi', ...]
 
     # Create a fetcher instance
     fetcher = get_fetcher("coinbase")

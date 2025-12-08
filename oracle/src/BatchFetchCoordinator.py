@@ -76,7 +76,10 @@ class BatchFetchCoordinator:
             supported_pairs = [
                 pair for pair in pairs
                 if fetcher.supports_pair(pair[0], pair[1])
-                and (active_sources is None or source in active_sources.get(f"{pair[0]}/{pair[1]}", [source]))
+                and (
+                    active_sources is None
+                    or source in active_sources.get(f"{pair[0]}/{pair[1]}", [source])
+                )
             ]
             if supported_pairs:
                 source_pairs[source] = supported_pairs
@@ -93,7 +96,9 @@ class BatchFetchCoordinator:
         source_results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Merge results into per-pair structure
-        for (source, _), result in zip(source_pairs.items(), source_results):
+        for (source, _), result in zip(
+            source_pairs.items(), source_results, strict=True
+        ):
             if isinstance(result, BaseException):
                 logger.warning(f"[{source}] Batch fetch exception: {result}")
                 # Mark all pairs for this source as failed
@@ -140,7 +145,7 @@ class BatchFetchCoordinator:
                     for base, quote in pairs
                 ]
                 prices = await asyncio.gather(*tasks)
-                return dict(zip(pairs, prices))
+                return dict(zip(pairs, prices, strict=True))
 
         except asyncio.TimeoutError:
             logger.warning(f"[{source}] Batch fetch timeout")

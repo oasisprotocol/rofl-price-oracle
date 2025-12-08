@@ -145,7 +145,8 @@ class PriceAggregator:
         :param prices: Dict mapping source name to price (or None if fetch failed).
         :param previous_price: Optional previous round's price for drift checking.
             If None, drift check is skipped (useful for first round).
-        :returns: AggregationResult with price and metadata, or None price with error info.
+        :returns: AggregationResult with price and metadata, or None price with
+            error info.
 
         .. code-block:: python
 

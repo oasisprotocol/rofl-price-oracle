@@ -123,7 +123,7 @@ class PriceOracle:
         if not self.pairs:
             raise ValueError("At least one trading pair must be specified")
 
-        # Auto-add usdt/usd pair when Binance is configured (required for USDT conversion)
+        # Auto-add usdt/usd pair when Binance is configured (for USDT conversion)
         if "binance" in self.sources:
             usdt_pair = AggregatedPair("usdt", "usd")
             if usdt_pair not in self.pairs:
@@ -210,8 +210,12 @@ class PriceOracle:
         self.observers: dict[AggregatedPair, PairObserver] = {}
 
         # Log batch-capable sources
-        batch_sources = [s for s in self.sources if self.fetchers[s].supports_batch]
-        non_batch_sources = [s for s in self.sources if not self.fetchers[s].supports_batch]
+        batch_sources = [
+            s for s in self.sources if self.fetchers[s].supports_batch
+        ]
+        non_batch_sources = [
+            s for s in self.sources if not self.fetchers[s].supports_batch
+        ]
         logger.info(
             f"PriceOracle initialized: pairs={[str(p) for p in self.pairs]}, "
             f"sources={self.sources}, fetch_period={self.fetch_period}s, "
