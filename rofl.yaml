@@ -31,18 +31,34 @@ deployments:
           min_tcb_evaluation_data_number: 18
           tdx: {}
       enclaves:
-        - SiIprxAJ0hV77x0qsk8DXrRTDhdA7VObJuH1WkaqiV8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-        - OBiNbCSn15/TlfwfpYDpl6GV7k6boyfK0Tb14AXRbmoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - tAoPH8sxfQ82nNfJ0eY2m0zDxtjtkMdVyb55quZCE5wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - coES93iSHeBKb8N+/Gjzd7w0Pf+FfVdqKdKpsKA0Wh8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
       endorsements:
         - any: {}
       fees: endorsing_node
       max_expiration: 3
     secrets:
       - name: FETCH_PERIOD
-        value: pGJwa1gg9nbZ8yobxxnScFRh2uhFInA5TYb1XpM4BWyV+xrYVQBkbmFtZVgc5f+7wKfPwnuQAWnqMIgQdPE1RvyxsSFI2H6/FWVub25jZU+O6xkl2urGIFKkEbufOL5ldmFsdWVSHBuDm/RJIbKPWzrMjzm9+Yh7
+        value: pGJwa1ggA2jUcpN91+yLV3ZBatAgCXG2/RGC+RZAKspH6A21eDlkbmFtZVgcWDD+Q9vbgfaChF+M2N9P3f4EHR9t3r753w3yqmVub25jZU9OLGUwFkL7MAIS8kTpdjRldmFsdWVT/X3dkREIp1H+Zk8kGpo6HRk/Ug==
       - name: NETWORK
-        value: pGJwa1ggpAWBCwTWqdj/h9V35X7sh/avLcF5MqhxJIYDyr29805kbmFtZVeeIFotDepkmtQGZMI4izuddwekIjSMa2Vub25jZU9NasE6Qp068PTRrVJCY3FldmFsdWVYIL2J7ym30p0vgeHyBUV8ZP+QuU1RXSQ+u8CxzFojJcOw
+        value: pGJwa1gg7ecJkoZrJXjg3MoBaRLUSlmxRhOYZY4CCH4uNg+ubABkbmFtZVfK1hObo8p+ecxtRp3OeKCWujjdkZHyGWVub25jZU/2oiAWU7Lgm5rT2YpFDcVldmFsdWVYIMHb6aaQiI9q3wUbc8tB2Krwi5XBZEm2Huu2B7BS9ki1
       - name: PAIR
         value: pGJwa1ggV14+JZxtWa6vGMyZwVHgiCvDFAEd+AYuNSGfET74Sz5kbmFtZVSAAHTtyVJggh9T3KjzVLEm4qqqeGVub25jZU8WEv9Kh49JmtFxhxkgO5tldmFsdWVYJN9iROfyj3qFGP0sHv3ARgcRXwxjtqLNTVTF17RLBCyuruY2Yg==
       - name: SUBMIT_PERIOD
-        value: pGJwa1gg5QcwPK8dD+G8YxeXnDwF5+Vq9BjZev28fkzZvQ+EFhJkbmFtZVgdz+ZcLXQ8TSBuI3Pr7kHZAer3KGSimuH5il95ZaRlbm9uY2VPLIwxXDSX/DjFCNyhqnwaZXZhbHVlUv3ykira0PhYVltIl1RshEPb1Q==
+        value: pGJwa1ggfX+wjHo48FC0pdQxb/nZo1ks21T70tjT9YMj0OjMUjRkbmFtZVgdEnrK7StPuuYQPS+qR9j3hXGvWraXnRpvV3S4yG9lbm9uY2VPbp6vwXBdjvOJF8S9P/ASZXZhbHVlUxSbtfnIhz4AY3I6FHIY9cCo6Ls=
+      - name: API_KEY_COINGECKO
+        value: pGJwa1ggg8hNu6DBT9d9KZ6U/k86dvKzCBsxIdZ3an/zZ1O5JDBkbmFtZVghlQ/0qq7jf1I9iC9kYpeXBxttoAHyHIyFepzVcHuAp8uGZW5vbmNlT95Q5KbV263FYIcmgGjy/mV2YWx1ZVgwE5Nsq0H6QGf2zc7dCL1lk+eBO1c3ScrMuJxFNP42npCuMc1PA5GiPHUAV5oOKwAt
+      - name: API_KEY_COINMARKETCAP
+        value: pGJwa1ggjQP3oVuHUI+7pBhsKDCok1obnrRX4DGgv6X2TO7H7RpkbmFtZVglX+AwWj6Km4dJYB9RioQTkUoWWpNgXwyUFot7xhuyb2/V6xWQgWVub25jZU9jY4jgCQOvwzDtq02+PKVldmFsdWVYMOksFfd41pUjM+mxtQmf89igYfYPg5ibewq0c8zkYk3K8JALXHQxYgFQH9RIrfMMnQ==
+      - name: DRIFT_LIMIT_PERCENT
+        value: pGJwa1gg/+AL4KqSkEY61Gl01YvwoT3MI1lkodmQNoqUcuEoXX1kbmFtZVgjvMek8ZocVcMY70Yrwol/eOPVcPrqIHfMQBkRwKIl8CqEvWBlbm9uY2VPLusmfQcylM4Z5z45grO7ZXZhbHVlVGTWkxst4tvje/+KQO8aUsYsNpIW
+      - name: FETCH_TIMEOUT
+        value: pGJwa1ggwES4pjPgmBV2mAcgKPuU3ZnRf4NT9a1i159wqlzx7ApkbmFtZVgdY0C84uLSsGuJkimr1/Vg39v2CDHUjg8Jqk1wd+Jlbm9uY2VPq6jGOAXJ1nhkT+okukyPZXZhbHVlVPrbhqbaLcWzIlJcE+4PG/OzQ41s
+      - name: MAX_DEVIATION_PERCENT
+        value: pGJwa1ggydLLbMzBDt2ynk+wVBZ0oOIvzMDrr3tmC2LxQ5A/9H1kbmFtZVglMOhVUDdHtmPw3+1XBd59/M/BJVn0UyRhmumSki0PGOLtXgJ4T2Vub25jZU+nu0UluQYYIiBNz1NiLXxldmFsdWVTwr1A8qlWZnlovuRcpYYEZFCXtQ==
+      - name: MIN_SOURCES
+        value: pGJwa1ggYbw9rojI+kOUjplm7zJ9kX2FqBiQjkAlR3CoH8HjfR1kbmFtZVgbeM7rcMEDH2YjsTXL2Ejj46dxy01xavIJalUAZW5vbmNlTz3Fi5Ee+SyGf7Bcavn4VmV2YWx1ZVFYIT2DK0We9AW1gUQGpVKf/Q==
+      - name: PAIRS
+        value: pGJwa1gg4DH5uCF7atWHYsdKoV9qetsgO6oqOTm/WcjeEA1OGC1kbmFtZVWqBk2QIHJoxJbYE2FQvz98InlbeJ5lbm9uY2VPZRrIBnMdYUgAYATYTFpZZXZhbHVlWCE/CFBE76nMtbtWivmCCta8CdQz2sEbHHCZAav96fKwSGU=
+      - name: SOURCES
+        value: pGJwa1ggMvs0BBa3bMVkrStpAZtjXfyx+jzg9mXykSdezRYKkjtkbmFtZVexhQW6KA7ql+7szRCrThLLas21iYMC/GVub25jZU97tV+tSSBugDx45h/uf+VldmFsdWVYS6sHYmj8aTOqmufd1yB+vDiLcl1jz54Lnb8rTcS7cRSo6OVKBKBwrbj7/oDvwuNzKcgSM/M2DMX3Vzdc+eq2JDWIqAaIOFFash1Dqw==

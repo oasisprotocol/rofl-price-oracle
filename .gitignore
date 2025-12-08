@@ -5,7 +5,8 @@
 .env
 .env.local
 !.env.example
-!.env.testnet
+.env.testnet
+.env.prod
 
 # Python
 __pycache__/

@@ -4,21 +4,18 @@ services:
       dockerfile: ./Dockerfile.oracle
     image: "ghcr.io/rube-de/rofl-price-oracle"
     platform: linux/amd64
-    # Rely on environment variables for configuration; see .env.example
-    # and oracle/main.py for supported settings.
-    entrypoint: /bin/sh -c 'python -m oracle.main'
     restart: on-failure
     environment:
       # Core configuration (all have sensible defaults in oracle/main.py)
-      - NETWORK=${NETWORK:-sapphire-testnet}
-      - PAIRS=${PAIRS:-btc/usd,eth/usd,rose/usd}
-      - SOURCES=${SOURCES:-coinbase,kraken,bitstamp,coingecko}
-      - MIN_SOURCES=${MIN_SOURCES:-2}
-      - MAX_DEVIATION_PERCENT=${MAX_DEVIATION_PERCENT:-5.0}
-      - DRIFT_LIMIT_PERCENT=${DRIFT_LIMIT_PERCENT:-10.0}
-      - FETCH_PERIOD=${FETCH_PERIOD:-60}
-      - SUBMIT_PERIOD=${SUBMIT_PERIOD:-300}
-      - FETCH_TIMEOUT=${FETCH_TIMEOUT:-10.0}
+      - NETWORK=${NETWORK}
+      - PAIRS=${PAIRS}
+      - SOURCES=${SOURCES}
+      - MIN_SOURCES=${MIN_SOURCES}
+      - MAX_DEVIATION_PERCENT=${MAX_DEVIATION_PERCENT}
+      - DRIFT_LIMIT_PERCENT=${DRIFT_LIMIT_PERCENT}
+      - FETCH_PERIOD=${FETCH_PERIOD}
+      - SUBMIT_PERIOD=${SUBMIT_PERIOD}
+      - FETCH_TIMEOUT=${FETCH_TIMEOUT}
       # Optional addresses (oracle will auto-detect/deploy if unset)
       - PRICE_FEED_ADDRESS=${PRICE_FEED_ADDRESS}
       - ADDRESS=${ADDRESS}
