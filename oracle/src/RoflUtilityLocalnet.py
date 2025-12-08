@@ -57,6 +57,7 @@ class RoflUtilityLocalnet(RoflUtility):
 
         # Check if transaction was successful
         if tx_receipt["status"] == 1:
-            return {"data": cbor2.loads(bytes.fromhex("a1626f6b40")), "tx_receipt": tx_receipt}
+            ok_cbor = cbor2.loads(bytes.fromhex("a1626f6b40"))
+            return {"data": ok_cbor, "tx_receipt": tx_receipt}
         else:
             return {"tx_receipt": tx_receipt}

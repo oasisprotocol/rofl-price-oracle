@@ -59,7 +59,8 @@ class CryptoCompareFetcher(BaseFetcher):
             price = data.get(quote.upper())
             if price is None:
                 logger.warning(
-                    f"[cryptocompare] No price for {base.upper()}/{quote.upper()}: {data}"
+                    f"[cryptocompare] No price for "
+                    f"{base.upper()}/{quote.upper()}: {data}"
                 )
                 return None
 

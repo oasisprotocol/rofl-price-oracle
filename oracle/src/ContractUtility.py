@@ -29,7 +29,8 @@ class ContractUtility:
             "sapphire-localnet": "http://localhost:8545",
         }
         # RPC_URL env var overrides the default for the network
-        self.network = os.environ.get("RPC_URL") or networks.get(network_name, network_name)
+        rpc_url = os.environ.get("RPC_URL")
+        self.network = rpc_url or networks.get(network_name, network_name)
 
         self.w3 = Web3(Web3.HTTPProvider(self.network))
         if network_name == "sapphire-localnet":

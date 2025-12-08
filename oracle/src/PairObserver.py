@@ -130,7 +130,9 @@ class PairObserver:
 
             if price is None:
                 backoff = self.source_manager.record_failure(source)
-                logger.debug(f"[{source}] No price for {self.pair}, backoff {backoff:.1f}s")
+                logger.debug(
+                    f"[{source}] No price for {self.pair}, backoff {backoff:.1f}s"
+                )
             else:
                 self.source_manager.record_success(source)
                 valid_prices[source] = price
@@ -152,7 +154,8 @@ class PairObserver:
                 )
             else:
                 logger.warning(
-                    f"{self.pair}: Aggregation failed ({error_type}): {agg_result.metadata}"
+                    f"{self.pair}: Aggregation failed ({error_type}): "
+                    f"{agg_result.metadata}"
                 )
             return False, None
 
@@ -177,7 +180,8 @@ class PairObserver:
         ]
         dropped_strs = [self._format_price(s, p) for s, p in dropped_dict.items()]
 
-        log_msg = f"{self.pair}: ${median_price:.6f} (median of [{', '.join(price_breakdown)}]"
+        breakdown_str = ", ".join(price_breakdown)
+        log_msg = f"{self.pair}: ${median_price:.6f} (median of [{breakdown_str}]"
         if dropped_strs:
             log_msg += f", dropped: [{', '.join(dropped_strs)}]"
         log_msg += ")"

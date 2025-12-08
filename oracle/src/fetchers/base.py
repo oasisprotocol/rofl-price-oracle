@@ -209,9 +209,9 @@ class BaseFetcher(ABC):
                 raise FetcherHTTPError(response.status_code, response.text[:200])
             return response
         except httpx.TimeoutException as e:
-            raise FetcherError(f"Request timeout: {e}")
+            raise FetcherError(f"Request timeout: {e}") from e
         except httpx.RequestError as e:
-            raise FetcherError(f"Request failed: {e}")
+            raise FetcherError(f"Request failed: {e}") from e
 
     async def _post(
         self,
@@ -247,9 +247,9 @@ class BaseFetcher(ABC):
                 raise FetcherHTTPError(response.status_code, response.text[:200])
             return response
         except httpx.TimeoutException as e:
-            raise FetcherError(f"Request timeout: {e}")
+            raise FetcherError(f"Request timeout: {e}") from e
         except httpx.RequestError as e:
-            raise FetcherError(f"Request failed: {e}")
+            raise FetcherError(f"Request failed: {e}") from e
 
 
 # Registry of available fetchers (populated by subclass imports)

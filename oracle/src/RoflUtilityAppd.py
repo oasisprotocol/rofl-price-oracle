@@ -170,7 +170,8 @@ class RoflUtilityAppd(RoflUtility):
         :returns: Transaction result with CBOR-decoded data.
         """
         # Strip 0x prefix from hex strings and normalize to lowercase
-        data_hex = tx["data"][2:] if str(tx["data"]).startswith("0x") else str(tx["data"])
+        data_str = str(tx["data"])
+        data_hex = data_str[2:] if data_str.startswith("0x") else data_str
         data_hex = data_hex.lower()
 
         # For contract creation, to is empty. For calls, strip 0x prefix.
