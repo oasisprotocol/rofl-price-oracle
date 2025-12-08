@@ -1,3 +1,3 @@
 @chainlink/contracts/=lib/chainlink-evm/contracts/
-@oasisprotocol/sapphire-contracts/contracts/=dependencies/@oasisprotocol-sapphire-contracts-0.2.15/
 @oasisprotocol-sapphire-foundry-0.1.2/=dependencies/@oasisprotocol-sapphire-foundry-0.1.2/
+@oasisprotocol/sapphire-contracts/contracts/=dependencies/@oasisprotocol-sapphire-contracts-0.2.15/

@@ -4,8 +4,9 @@ This module fetches prices from multiple API sources, aggregates them using
 median with outlier detection, and submits the aggregated price on-chain.
 
 Architecture:
-    - One observation loop per trading pair (e.g., btc/usd)
-    - Each loop queries all configured sources concurrently
+    - Single centralized fetch loop using BatchFetchCoordinator
+    - Batch fetching from sources that support it (reduces API calls by 60-90%)
+    - Per-pair PairObserver instances handle aggregation and submission
     - Prices are aggregated via median with outlier filtering
     - Failed sources enter exponential backoff
     - Aggregated prices are accumulated as observations
@@ -16,17 +17,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 from typing import TYPE_CHECKING
 
 from .AggregatedPair import AggregatedPair
+from .BatchFetchCoordinator import BatchFetchCoordinator
 from .ContractUtility import ContractUtility
 from .fetchers import BaseFetcher, get_available_fetchers, get_fetcher
-from .PriceAggregator import PriceAggregator
+from .PairObserver import PairObserver
 from .RoflUtility import RoflUtility, bech32_to_bytes
 from .RoflUtilityAppd import RoflUtilityAppd
 from .RoflUtilityLocalnet import RoflUtilityLocalnet
-from .SourceManager import SourceManager
 
 if TYPE_CHECKING:
     from web3 import Web3
@@ -123,6 +123,15 @@ class PriceOracle:
         if not self.pairs:
             raise ValueError("At least one trading pair must be specified")
 
+        # Auto-add usdt/usd pair when Binance is configured (required for USDT conversion)
+        if "binance" in self.sources:
+            usdt_pair = AggregatedPair("usdt", "usd")
+            if usdt_pair not in self.pairs:
+                self.pairs.insert(0, usdt_pair)  # Add at front for earlier fetch
+                logger.info(
+                    "Auto-added usdt/usd pair (required for Binance USDT conversion)"
+                )
+
         # Initialize contract utilities
         contract_utility = ContractUtility(network_name)
         self.w3: Web3 = contract_utility.w3
@@ -191,11 +200,27 @@ class PriceOracle:
                 )
             self.pair_sources[pair] = supported
 
+        # Create batch fetch coordinator
+        self.batch_coordinator = BatchFetchCoordinator(
+            fetchers=self.fetchers,
+            fetch_timeout=self.fetch_timeout,
+        )
+
+        # PairObservers will be created after contracts are detected/deployed
+        self.observers: dict[AggregatedPair, PairObserver] = {}
+
+        # Log batch-capable sources
+        batch_sources = [s for s in self.sources if self.fetchers[s].supports_batch]
+        non_batch_sources = [s for s in self.sources if not self.fetchers[s].supports_batch]
         logger.info(
             f"PriceOracle initialized: pairs={[str(p) for p in self.pairs]}, "
             f"sources={self.sources}, fetch_period={self.fetch_period}s, "
             f"submit_period={self.submit_period}s"
         )
+        if batch_sources:
+            logger.info(f"Batch-capable sources: {batch_sources}")
+        if non_batch_sources:
+            logger.info(f"Non-batch sources (individual fetches): {non_batch_sources}")
 
     def _detect_contract(self, pair: AggregatedPair, app_id_bytes: bytes) -> bool:
         """Detect existing aggregator contract for a pair.
@@ -282,183 +307,94 @@ class PriceOracle:
         logger.error(f"Failed to detect or deploy contract for {pair}")
         raise RuntimeError(f"Aggregator contract not available for {pair}")
 
-    async def _fetch_with_timeout(
-        self, source: str, base: str, quote: str
-    ) -> float | None:
-        """Fetch price from a source with timeout.
+    def _create_observer(self, pair: AggregatedPair) -> PairObserver:
+        """Create a PairObserver for a trading pair.
 
-        :param source: Source name to fetch from.
-        :param base: Base currency symbol.
-        :param quote: Quote currency symbol.
-        :returns: Price as float, or None on failure/timeout.
+        :param pair: Trading pair to create observer for.
+        :returns: Configured PairObserver instance.
         """
-        fetcher = self.fetchers.get(source)
-        if not fetcher:
-            return None
-
-        if not fetcher.supports_pair(base, quote):
-            return None
-
-        try:
-            return await asyncio.wait_for(
-                fetcher.fetch(base, quote),
-                timeout=self.fetch_timeout,
-            )
-        except asyncio.TimeoutError:
-            logger.warning(f"[{source}] Timeout fetching {base}/{quote}")
-            return None
-        except Exception as e:
-            logger.warning(f"[{source}] Error fetching {base}/{quote}: {e}")
-            return None
-
-    async def _aggregated_observation_loop(self, pair: AggregatedPair) -> None:
-        """Main observation loop for an aggregated pair.
-
-        Fetches from all sources, aggregates prices, accumulates observations,
-        and submits on-chain periodically.
-
-        :param pair: Trading pair to observe.
-        """
-        observations: list[tuple[int, int]] = []  # (price_scaled, timestamp)
-        last_submit = time.time()
-
-        contract = self.contracts[pair]
-        decimals: int = contract.functions.decimals().call()
-        latest_round_data = contract.functions.latestRoundData().call()
-        round_id: int = latest_round_data[0]
-
-        # Initialize aggregator and source manager
-        aggregator = PriceAggregator(
+        return PairObserver(
+            pair=pair,
+            contract=self.contracts[pair],
+            rofl_utility=self.rofl_utility,
+            sources=self.pair_sources[pair],
+            fetchers=self.fetchers,
+            submit_period=self.submit_period,
             min_sources=self.min_sources,
             max_deviation_percent=self.max_deviation_percent,
             drift_limit_percent=self.drift_limit_percent,
+            gas_price_fn=lambda: self.w3.eth.gas_price,
         )
-        pair_sources = self.pair_sources.get(pair, [])
-        source_manager = SourceManager(pair_sources)
 
-        # Track last good median for drift detection
-        # On cold start, try to get last price from chain
-        last_good_median: float | None = None
-        if latest_round_data[1] > 0:  # answer > 0
-            last_good_median = float(latest_round_data[1]) / (10**decimals)
-            logger.info(f"{pair}: Starting with on-chain price ${last_good_median:.6f}")
+    async def _batch_fetch_loop(self) -> None:
+        """Main loop using centralized batch fetching.
 
+        Fetches prices for all pairs from all sources using batch requests
+        where supported, then distributes results to per-pair observers.
+        """
         logger.info(
-            f"Starting observation loop for {pair} "
-            f"(decimals={decimals}, round_id={round_id})"
+            f"Starting centralized batch fetch loop for {len(self.pairs)} pairs"
         )
 
         while True:
-            # Get active sources (not in backoff) that support this pair
-            active_sources = source_manager.get_active_sources()
+            # Build list of pairs as tuples for batch coordinator
+            pair_tuples = [(p.pair_base, p.pair_quote) for p in self.pairs]
 
-            if not active_sources:
-                logger.warning(f"{pair}: No active sources, sleeping...")
+            # Build active sources map for each pair
+            active_sources: dict[str, list[str]] = {}
+            for pair in self.pairs:
+                observer = self.observers[pair]
+                pair_key = f"{pair.pair_base}/{pair.pair_quote}"
+                active_sources[pair_key] = observer.get_active_sources()
+
+            # Check if any pair has active sources
+            all_inactive = all(
+                len(sources) == 0 for sources in active_sources.values()
+            )
+            if all_inactive:
+                logger.warning("All sources in backoff for all pairs, sleeping...")
                 await asyncio.sleep(self.fetch_period)
                 continue
 
-            # Fetch from all active sources concurrently
-            tasks = [
-                self._fetch_with_timeout(source, pair.pair_base, pair.pair_quote)
-                for source in active_sources
-            ]
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-
-            # Process results and update source manager
-            prices: dict[str, float | None] = {}
-            for source, result in zip(active_sources, results):
-                if isinstance(result, BaseException):
-                    logger.warning(f"[{source}] Exception: {result}")
-                    backoff = source_manager.record_failure(source)
-                    logger.debug(f"[{source}] Backoff for {backoff:.1f}s")
-                elif result is None:
-                    backoff = source_manager.record_failure(source)
-                    logger.debug(f"[{source}] No price, backoff for {backoff:.1f}s")
-                else:
-                    source_manager.record_success(source)
-                    prices[source] = result
-
-            # Aggregate prices
-            agg_result = aggregator.aggregate(prices, previous_price=last_good_median)
-
-            if not agg_result.success:
-                error_type = agg_result.error or "unknown"
-                logger.warning(
-                    f"{pair}: Aggregation failed ({error_type}): {agg_result.metadata}"
-                )
-                await asyncio.sleep(self.fetch_period)
-                continue
-
-            # Update last good median
-            median_price = agg_result.price
-            assert median_price is not None  # Guaranteed by agg_result.success
-            last_good_median = median_price
-            meta = agg_result.metadata
-
-            # Log the aggregated price
-            sources_used = meta.get("sources", [])
-            dropped = list(meta.get("dropped", {}).keys())
-            logger.info(
-                f"{pair}: ${median_price:.6f} "
-                f"(from {len(sources_used)} sources: {sources_used}"
-                f"{f', dropped: {dropped}' if dropped else ''})"
+            # Batch fetch all pairs from all sources
+            results = await self.batch_coordinator.fetch_all(
+                pairs=pair_tuples,
+                active_sources=active_sources,
             )
 
-            # Accumulate observation
-            price_scaled = int(median_price * (10**decimals))
-            timestamp = int(time.time())
-            observations.append((price_scaled, timestamp))
+            # Distribute results to observers
+            for pair in self.pairs:
+                pair_tuple = (pair.pair_base, pair.pair_quote)
+                pair_prices = results.get(pair_tuple, {})
 
-            # Check if it's time to submit
-            if time.time() - last_submit > self.submit_period:
-                round_id += 1
+                # Convert to observer format and receive
+                observer = self.observers[pair]
+                observer.receive_prices(pair_prices)
 
-                # Take median of accumulated observations
-                sorted_obs = sorted(observations)
-                final_price = sorted_obs[len(observations) // 2][0]
-
-                # Submit to chain
-                tx_params = contract.functions.submitObservation(
-                    round_id,
-                    final_price,
-                    observations[0][1],  # startedAt
-                    observations[-1][1],  # updatedAt
-                ).build_transaction({"gasPrice": self.w3.eth.gas_price})
-
-                result = self.rofl_utility.submit_tx(tx_params)
-                logger.info(
-                    f"{pair}: Round {round_id} submitted "
-                    f"(price=${final_price / 10**decimals:.6f}, "
-                    f"observations={len(observations)}). Result: {result}"
-                )
-
-                last_submit = time.time()
-                observations = []
+                # Check if it's time to submit
+                if observer.should_submit():
+                    observer.submit()
 
             await asyncio.sleep(self.fetch_period)
 
     async def run(self) -> None:
         """Run the price oracle.
 
-        Starts observation loops for all configured pairs and runs until
-        interrupted.
+        Initializes contracts and observers, then starts the centralized
+        batch fetch loop.
         """
-        tasks: list[asyncio.Task[None]] = []
-
+        # Ensure contracts exist and create observers
         for pair in self.pairs:
-            # Ensure contract exists
             self.detect_or_deploy_contract(pair)
+            self.observers[pair] = self._create_observer(pair)
 
-            # Start observation loop
-            tasks.append(asyncio.create_task(self._aggregated_observation_loop(pair)))
-
-            # Small delay between starting loops to avoid thundering herd
-            await asyncio.sleep(1)
-
-        logger.info(f"Started {len(tasks)} observation loops")
+        logger.info(
+            f"Initialized {len(self.observers)} pair observers, "
+            f"starting batch fetch loop"
+        )
 
         try:
-            await asyncio.gather(*tasks)
+            await self._batch_fetch_loop()
         finally:
             # Clean up shared HTTP client
             await BaseFetcher.close_shared_client()

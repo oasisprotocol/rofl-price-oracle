@@ -80,3 +80,107 @@ class KrakenFetcher(BaseFetcher):
         :returns: True if pair is supported.
         """
         return base.lower() != "rose"
+
+    @property
+    def supports_batch(self) -> bool:
+        """Kraken supports batch fetching multiple pairs."""
+        return True
+
+    async def fetch_batch(
+        self, pairs: list[tuple[str, str]]
+    ) -> dict[tuple[str, str], float | None]:
+        """Fetch prices for multiple pairs in a single API call.
+
+        Kraken's /Ticker endpoint accepts comma-separated pairs
+        for efficient batch queries.
+
+        :param pairs: List of (base, quote) tuples to fetch.
+        :returns: Dict mapping (base, quote) to price or None.
+        """
+        results: dict[tuple[str, str], float | None] = {}
+
+        if not pairs:
+            return results
+
+        # Filter to supported pairs and build Kraken symbols
+        supported_pairs: list[tuple[str, str]] = []
+        kraken_pairs: list[str] = []
+        pair_to_kraken: dict[tuple[str, str], str] = {}
+
+        for base, quote in pairs:
+            if not self.supports_pair(base, quote):
+                results[(base, quote)] = None
+                continue
+
+            # Map common symbols to Kraken's format
+            kraken_base = self.SYMBOL_MAP.get(base.lower(), base.upper())
+            kraken_quote = quote.upper()
+            kraken_pair = f"{kraken_base}{kraken_quote}"
+
+            supported_pairs.append((base, quote))
+            kraken_pairs.append(kraken_pair)
+            pair_to_kraken[(base, quote)] = kraken_pair
+
+        if not supported_pairs:
+            return results
+
+        url = f"{self.BASE_URL}/Ticker"
+
+        try:
+            response = await self._get(url, params={"pair": ",".join(kraken_pairs)})
+            data = response.json()
+
+            # Check for errors
+            if data.get("error"):
+                errors = data["error"]
+                if errors:
+                    logger.warning(f"[kraken] Batch API error: {errors}")
+                    for base, quote in supported_pairs:
+                        results[(base, quote)] = None
+                    return results
+
+            result_data = data.get("result", {})
+            if not result_data:
+                logger.warning("[kraken] No result in batch response")
+                for base, quote in supported_pairs:
+                    results[(base, quote)] = None
+                return results
+
+            # Map results back to original pairs
+            # Kraken returns results with pair names as keys (may vary slightly)
+            for base, quote in supported_pairs:
+                kraken_pair = pair_to_kraken[(base, quote)]
+
+                # Kraken might use different key formats, try exact match first
+                pair_data = result_data.get(kraken_pair)
+
+                # If not found, try to find a matching key
+                if pair_data is None:
+                    for key in result_data:
+                        # Kraken sometimes prefixes with X or Z
+                        if kraken_pair in key or key.replace("X", "").replace("Z", "") == kraken_pair:
+                            pair_data = result_data[key]
+                            break
+
+                if pair_data is None:
+                    results[(base, quote)] = None
+                    continue
+
+                # 'c' is the last trade closed array: [price, lot volume]
+                price = pair_data.get("c", [None])[0]
+                if price is None:
+                    results[(base, quote)] = None
+                    continue
+
+                results[(base, quote)] = float(price)
+
+        except FetcherError as e:
+            logger.warning(f"[kraken] Batch fetch failed: {e}")
+            for base, quote in supported_pairs:
+                results[(base, quote)] = None
+        except (KeyError, ValueError, TypeError, IndexError) as e:
+            logger.warning(f"[kraken] Failed to parse batch response: {e}")
+            for base, quote in supported_pairs:
+                results[(base, quote)] = None
+
+        return results

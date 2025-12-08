@@ -157,6 +157,26 @@ forge create ... --rpc-url https://testnet.sapphire.oasis.io
 forge create ... --rpc-url https://sapphire.oasis.io
 ```
 
+### Local Testing (without ROFL TEE)
+
+For local development, mock contracts are available that don't require TEE verification:
+
+```bash
+# 1. Start sapphire-localnet
+docker run -it -p8545:8545 -p8546:8546 ghcr.io/oasisprotocol/sapphire-localnet -test-mnemonic
+
+# 2. Deploy mock contracts (uses default localnet address 0x5FbDB...aa3)
+cd contracts
+forge script script/DeployMocks.s.sol --rpc-url sapphire-localnet --broadcast
+
+# 3. Run with docker compose
+docker compose -f compose.local.yaml up --build
+```
+
+Mock contracts:
+- `MockPriceFeedDirectory` - No ROFL app ID verification
+- `MockSimpleAggregator` - No TEE check on `submitObservation()`
+
 ### Running Contract Tests
 
 1. Build Sapphire precompiles:
@@ -206,7 +226,12 @@ contracts/
 ├── src/
 │   ├── PriceFeedDirectory.sol   # Feed registry
 │   ├── SimpleAggregator.sol     # Per-pair aggregator
-│   └── RoflAggregatorV3Interface.sol
+│   ├── RoflAggregatorV3Interface.sol
+│   └── mocks/                   # Mock contracts for local testing
+│       ├── MockPriceFeedDirectory.sol
+│       └── MockSimpleAggregator.sol
+├── script/
+│   └── DeployMocks.s.sol        # Foundry deployment script
 └── test/
 ```
 

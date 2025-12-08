@@ -1,6 +1,7 @@
 """ContractUtility: Web3 initialization and contract ABI loading."""
 
 import json
+import os
 from pathlib import Path
 
 from eth_account import Account
@@ -27,7 +28,8 @@ class ContractUtility:
             "sapphire-testnet": "https://testnet.sapphire.oasis.io",
             "sapphire-localnet": "http://localhost:8545",
         }
-        self.network = networks[network_name] if network_name in networks else network_name
+        # RPC_URL env var overrides the default for the network
+        self.network = os.environ.get("RPC_URL") or networks.get(network_name, network_name)
 
         self.w3 = Web3(Web3.HTTPProvider(self.network))
         if network_name == "sapphire-localnet":

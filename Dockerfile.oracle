@@ -3,26 +3,27 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 USER foundry
 COPY --chown=foundry . /repo
-WORKDIR /repo
-RUN git submodule update --init --recursive
 WORKDIR /repo/contracts
 RUN rm -rf dependencies && forge soldeer install
 RUN forge build
 
-FROM python:alpine3.17
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 WORKDIR /app
 
-# Copy full repo (Python code, configs, etc.)
-COPY . /app
+# Copy dependency files first for better layer caching
+COPY pyproject.toml uv.lock* ./
 
-# Overlay compiled contract artifacts into /app/contracts/out so
-# ContractUtility can find them relative to the repo root.
-COPY --from=contracts-build /repo/contracts/out /app/contracts/out
+# Install dependencies (cached if pyproject.toml unchanged)
+RUN uv sync --frozen --no-dev --no-install-project 2>/dev/null || uv sync --no-dev --no-install-project
 
-RUN apk update && apk add python3-dev gcc libc-dev
+# Copy application code
+COPY oracle/ ./oracle/
 
-# Install the oracle package and its dependencies from pyproject.toml
-RUN pip install .
+# Overlay compiled contract artifacts
+COPY --from=contracts-build /repo/contracts/out ./contracts/out
+
+# Install the project itself
+RUN uv sync --frozen --no-dev 2>/dev/null || uv sync --no-dev
 
 # CLI entrypoint; compose.yaml can override this if needed
-ENTRYPOINT ["python", "-m", "oracle.main"]
+ENTRYPOINT ["uv", "run", "python", "-m", "oracle.main"]

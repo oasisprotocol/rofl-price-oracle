@@ -26,8 +26,8 @@ import logging
 import os
 import sys
 
-from src.PriceOracle import DEFAULT_PRICE_FEED_ADDRESS, PriceOracle
-from src.fetchers import get_available_fetchers
+from .src.PriceOracle import DEFAULT_PRICE_FEED_ADDRESS, PriceOracle
+from .src.fetchers import get_available_fetchers
 
 # Configure logging
 logging.basicConfig(
@@ -114,14 +114,14 @@ Environment variables (CLI args take precedence):
         "--pairs",
         type=str,
         help="Comma-separated trading pairs (e.g., btc/usd,eth/usd,rose/usd)",
-        default=os.environ.get("PAIRS", "btc/usd"),
+        default=os.environ.get("PAIRS") or "btc/usd",
     )
 
     parser.add_argument(
         "--sources",
         type=str,
         help=f"Comma-separated price sources. Available: {', '.join(available_sources)}",
-        default=os.environ.get("SOURCES", "coinbase,kraken,bitstamp,coingecko"),
+        default=os.environ.get("SOURCES") or "coinbase,kraken,bitstamp,coingecko",
     )
 
     parser.add_argument(
@@ -129,7 +129,7 @@ Environment variables (CLI args take precedence):
         dest="min_sources",
         type=int,
         help="Minimum sources required for valid aggregation (default: 2)",
-        default=int(os.environ.get("MIN_SOURCES", "2")),
+        default=int(os.environ.get("MIN_SOURCES") or "2"),
     )
 
     parser.add_argument(
@@ -137,7 +137,7 @@ Environment variables (CLI args take precedence):
         dest="max_deviation",
         type=float,
         help="Max price deviation percent before excluding outlier (default: 5.0)",
-        default=float(os.environ.get("MAX_DEVIATION_PERCENT", "5.0")),
+        default=float(os.environ.get("MAX_DEVIATION_PERCENT") or "5.0"),
     )
 
     parser.add_argument(
@@ -145,14 +145,14 @@ Environment variables (CLI args take precedence):
         dest="drift_limit",
         type=float,
         help="Max change vs previous price percent (default: 10.0, 0 to disable)",
-        default=float(os.environ.get("DRIFT_LIMIT_PERCENT", "10.0")),
+        default=float(os.environ.get("DRIFT_LIMIT_PERCENT") or "10.0"),
     )
 
     parser.add_argument(
         "--network",
         type=str,
         help="Network to connect to (sapphire, sapphire-testnet, sapphire-localnet)",
-        default=os.environ.get("NETWORK", "sapphire-localnet"),
+        default=os.environ.get("NETWORK") or "sapphire-localnet",
     )
 
     parser.add_argument(
@@ -160,7 +160,7 @@ Environment variables (CLI args take precedence):
         dest="fetch_period",
         type=int,
         help="Seconds between fetching prices (minimum: 1, default: 60)",
-        default=int(os.environ.get("FETCH_PERIOD", "60")),
+        default=int(os.environ.get("FETCH_PERIOD") or "60"),
     )
 
     parser.add_argument(
@@ -168,7 +168,7 @@ Environment variables (CLI args take precedence):
         dest="submit_period",
         type=int,
         help="Seconds between on-chain submissions (minimum: 6, default: 300)",
-        default=int(os.environ.get("SUBMIT_PERIOD", "300")),
+        default=int(os.environ.get("SUBMIT_PERIOD") or "300"),
     )
 
     parser.add_argument(
@@ -199,7 +199,7 @@ Environment variables (CLI args take precedence):
         dest="fetch_timeout",
         type=float,
         help="Timeout for individual fetch requests in seconds (default: 10.0)",
-        default=float(os.environ.get("FETCH_TIMEOUT", "10.0")),
+        default=float(os.environ.get("FETCH_TIMEOUT") or "10.0"),
     )
 
     parser.add_argument(
