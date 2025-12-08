@@ -39,6 +39,8 @@ from .coinapi import CoinAPIFetcher
 from .coinbase import CoinbaseFetcher
 from .coingecko import CoinGeckoFetcher
 from .coinmarketcap import CoinMarketCapFetcher
+from .coinpaprika import CoinpaprikaFetcher
+from .cryptocompare import CryptoCompareFetcher
 from .eodhd import EODHDFetcher
 from .kraken import KrakenFetcher
 
@@ -61,6 +63,8 @@ __all__ = [
     "CoinbaseFetcher",
     "CoinGeckoFetcher",
     "CoinMarketCapFetcher",
+    "CoinpaprikaFetcher",
+    "CryptoCompareFetcher",
     "EODHDFetcher",
     "KrakenFetcher",
 ]

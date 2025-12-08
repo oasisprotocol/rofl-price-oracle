@@ -3,6 +3,9 @@
 All price fetchers inherit from BaseFetcher and implement the fetch() method.
 A shared httpx.AsyncClient is used across all fetchers to avoid connection overhead.
 
+Fetchers can optionally implement batch fetching for APIs that support querying
+multiple pairs in a single request, reducing API calls significantly.
+
 .. code-block:: python
 
     @register_fetcher
@@ -12,6 +15,17 @@ A shared httpx.AsyncClient is used across all fetchers to avoid connection overh
         async def fetch(self, base: str, quote: str) -> float | None:
             response = await self._get(f"https://api.example.com/{base}/{quote}")
             return response.json()["price"]
+
+        # Optional: implement for batch-capable APIs
+        @property
+        def supports_batch(self) -> bool:
+            return True
+
+        async def fetch_batch(
+            self, pairs: list[tuple[str, str]]
+        ) -> dict[tuple[str, str], float | None]:
+            # Fetch multiple pairs in one API call
+            ...
 """
 
 import logging
@@ -82,6 +96,11 @@ class BaseFetcher(ABC):
         self.api_key = api_key
         self.timeout = timeout or self.DEFAULT_TIMEOUT
 
+    @property
+    def has_api_key(self) -> bool:
+        """Check if this fetcher has an API key configured."""
+        return self.api_key is not None and len(self.api_key) > 0
+
     @classmethod
     def get_shared_client(cls) -> httpx.AsyncClient:
         """Get or create the shared HTTP client.
@@ -125,6 +144,36 @@ class BaseFetcher(ABC):
         :returns: True if pair is supported.
         """
         return True
+
+    @property
+    def supports_batch(self) -> bool:
+        """Check if this fetcher supports batch fetching multiple pairs.
+
+        Override in subclasses that implement fetch_batch() with actual
+        batch API calls.
+
+        :returns: True if batch fetching is supported.
+        """
+        return False
+
+    async def fetch_batch(
+        self, pairs: list[tuple[str, str]]
+    ) -> dict[tuple[str, str], float | None]:
+        """Fetch prices for multiple trading pairs.
+
+        Default implementation falls back to sequential individual fetches.
+        Override in subclasses to implement actual batch API calls.
+
+        :param pairs: List of (base, quote) tuples to fetch.
+        :returns: Dict mapping (base, quote) to price or None.
+        """
+        results: dict[tuple[str, str], float | None] = {}
+        for base, quote in pairs:
+            if self.supports_pair(base, quote):
+                results[(base, quote)] = await self.fetch(base, quote)
+            else:
+                results[(base, quote)] = None
+        return results
 
     async def _get(
         self,

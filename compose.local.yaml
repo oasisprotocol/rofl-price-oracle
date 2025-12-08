@@ -1,0 +1,46 @@
+services:
+  # Sapphire localnet - local blockchain for testing
+  # sapphire-localnet:
+  #   image: ghcr.io/oasisprotocol/sapphire-localnet
+  #   platform: linux/amd64
+  #   ports:
+  #     - "8545:8545"
+  #     - "8546:8546"
+  #   command: ["-test-mnemonic"]
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8545"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 10s
+
+  # Oracle service configured for local testing
+  oracle:
+    build:
+      dockerfile: ./Dockerfile.oracle
+    image: "ghcr.io/rube-de/rofl-price-oracle:local"
+    platform: linux/amd64
+    restart: on-failure
+    environment:
+      # Local network configuration
+      - NETWORK=sapphire-localnet
+      # Use host.docker.internal to connect to localnet running on host
+      - RPC_URL=http://host.docker.internal:8545
+      # Trading pairs and sources
+      - PAIRS=${PAIRS}
+      - SOURCES=${SOURCES}
+      - MIN_SOURCES=${MIN_SOURCES}
+      - MAX_DEVIATION_PERCENT=${MAX_DEVIATION_PERCENT}
+      - DRIFT_LIMIT_PERCENT=${DRIFT_LIMIT_PERCENT}
+      # Faster intervals for local testing
+      - FETCH_PERIOD=${FETCH_PERIOD}
+      - SUBMIT_PERIOD=${SUBMIT_PERIOD}
+      - FETCH_TIMEOUT=${FETCH_TIMEOUT}
+      # Mock contract address (deploy with: forge script script/DeployMocks.s.sol)
+      - PRICE_FEED_ADDRESS=${PRICE_FEED_ADDRESS}
+      - ADDRESS=${ADDRESS}
+      # Optional API keys
+      - API_KEYS=${API_KEYS}
+      - API_KEY_COINGECKO=${API_KEY_COINGECKO}
+      - API_KEY_COINMARKETCAP=${API_KEY_COINMARKETCAP}
+    # No ROFL appd socket needed - uses RoflUtilityLocalnet with hardcoded test key

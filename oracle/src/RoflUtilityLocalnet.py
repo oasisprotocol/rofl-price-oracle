@@ -1,5 +1,6 @@
 """RoflUtilityLocalnet: ROFL utility for local development."""
 
+import os
 from typing import Any
 
 import cbor2
@@ -24,7 +25,8 @@ class RoflUtilityLocalnet(RoflUtility):
         """
         self.w3 = w3
         if w3 is None:
-            self.w3 = Web3(Web3.HTTPProvider("http://localhost:8545"))
+            rpc_url = os.environ.get("RPC_URL", "http://localhost:8545")
+            self.w3 = Web3(Web3.HTTPProvider(rpc_url))
 
     def fetch_appid(self) -> str:
         """Return a dummy app ID for localnet.
