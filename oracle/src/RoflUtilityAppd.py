@@ -190,7 +190,7 @@ class RoflUtilityAppd(RoflUtility):
                     "data": data_hex,
                 },
             },
-            "encrypted": False,
+            "encrypt": False,
         }
 
         path = "/rofl/v1/tx/sign-submit"
