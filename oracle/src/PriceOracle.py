@@ -92,7 +92,7 @@ EXCHANGE_FETCHERS = {
 
 # Predeployed price directory contract addresses based on the network.
 DEFAULT_PRICE_FEED_ADDRESS = {
-    "sapphire": None,
+    "sapphire": "0x1e1A7E15dd6eEeD48e00530d31fCf408F40E0A12",
     "sapphire-testnet": "0xB3E8721A5E9bb84Cfa99b50131Ac47341B4a9EfF",
     "sapphire-localnet": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
 }
@@ -222,7 +222,7 @@ class PriceOracle:
         tx_params = self.price_feed_contract.functions.addFeed(
             "/".join((pair.exchange, pair.pair_base, pair.pair_quote)),
             "0x0000000000000000000000000000000000000000",
-            False,
+            True,
         ).build_transaction({
             'gasPrice': self.w3.eth.gas_price,
         })
