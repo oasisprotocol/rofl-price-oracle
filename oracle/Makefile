@@ -1,35 +1,26 @@
-# Define the Python interpreter
-PYTHON=python3
+# Thin wrapper Makefile to keep legacy commands working when run from
+# the oracle/ directory. All targets delegate to the root Makefile.
 
-# Install dependencies
 install:
-	$(PYTHON) -m pip install -r requirements.txt
+	$(MAKE) -C .. install
 
-# Run tests
 test:
-	$(PYTHON) -m unittest discover -s tests -t ..
+	$(MAKE) -C .. test
 
-# Clean up build artifacts
 clean:
-	rm -rf __pycache__
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info
+	$(MAKE) -C .. clean
 
-# Lint code
 lint:
-	flake8 src/
+	$(MAKE) -C .. lint
 
-# Run all checks (linting, testing)
-check: lint test
+check:
+	$(MAKE) -C .. check
 
-# Create a distribution package
 dist:
-	$(PYTHON) setup.py sdist bdist_wheel
+	$(MAKE) -C .. dist
 
-# Run the application
 run:
-	$(PYTHON) src/main.py
+	$(MAKE) -C .. run
 
 run-localnet:
 	@printf "$(CYAN)*** Starting $(BLUE)sapphire-localnet$(CYAN)...$(OFF)\n"

@@ -8,4 +8,7 @@ ffi = true
 "@oasisprotocol-sapphire-foundry" = "0.1.2"
 "@oasisprotocol-sapphire-contracts" = "0.2.15"
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+[rpc_endpoints]
+sapphire-localnet = "http://localhost:8545"
+sapphire-testnet = "https://testnet.sapphire.oasis.io"
+sapphire = "https://sapphire.oasis.io"

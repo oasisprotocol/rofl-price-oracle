@@ -1,7 +1,11 @@
-import pytest
+"""Unit tests for RoflUtility."""
+
 import unittest
 
-from ..src.RoflUtility import bech32_to_bytes
+import pytest
+
+from oracle.src.RoflUtility import bech32_to_bytes
+
 
 class TestRoflUtility(unittest.TestCase):
     def test_bech32_to_bytes(self):

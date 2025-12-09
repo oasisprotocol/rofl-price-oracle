@@ -1,11 +1,29 @@
 FROM ghcr.io/foundry-rs/foundry:latest AS contracts-build
-COPY --chown=foundry ./contracts /contracts
-RUN cd /contracts && forge build
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+USER foundry
+COPY --chown=foundry . /repo
+WORKDIR /repo/contracts
+RUN rm -rf dependencies && forge soldeer install
+RUN forge build
 
-FROM python:alpine3.17
-WORKDIR /oracle
-COPY ./oracle /oracle
-COPY --from=contracts-build /contracts /contracts
-RUN apk update && apk add python3-dev gcc libc-dev
-RUN pip install -r requirements.txt
-ENTRYPOINT ["python", "main.py"]
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+WORKDIR /app
+
+# Copy dependency files first for better layer caching
+COPY pyproject.toml uv.lock* ./
+
+# Install dependencies (cached if pyproject.toml unchanged)
+RUN uv sync --frozen --no-dev --no-install-project 2>/dev/null || uv sync --no-dev --no-install-project
+
+# Copy application code
+COPY oracle/ ./oracle/
+
+# Overlay compiled contract artifacts
+COPY --from=contracts-build /repo/contracts/out ./contracts/out
+
+# Install the project itself
+RUN uv sync --frozen --no-dev 2>/dev/null || uv sync --no-dev
+
+# CLI entrypoint; compose.yaml can override this if needed
+ENTRYPOINT ["uv", "run", "python", "-m", "oracle.main"]

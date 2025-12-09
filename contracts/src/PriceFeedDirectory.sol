@@ -19,9 +19,16 @@ contract PriceFeedDirectory {
 
     event FeedAdded(address indexed aggregator, string appProviderChainPair);
 
-    // Maps the hashed and lowercase hex-encoded app ID (without leading 0x), price provider hostname, (optional) chain and trading pair (or contract address without leading 0x) separated by / to the data feed.
-    // Key examples:
-    // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/bitstamp.net/btc_usd")
+    // Maps the hashed and lowercase hex-encoded app ID (without leading 0x) and providerChainPair
+    // (which can be aggregated or per-provider) to the data feed.
+    //
+    // Key examples (aggregated multi-source feeds - recommended):
+    // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/aggregated/btc/usd")
+    // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/aggregated/eth/usd")
+    // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/aggregated/rose/usd")
+    //
+    // Direct per-exchange keys or DEX formats:
+    // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/bitstamp.net/btc/usd")
     // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/uniswap.org/polygon/native/1bfd67037b42cf73acf2047067bd4f2c47d9bfd6")
     // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/uniswap.org/base/833589fCD6eDb6E08f4c7C32D4f71b54bdA02913/1bfd67037b42cf73acf2047067bd4f2c47d9bfd6")
     mapping(bytes32 => RoflAggregatorV3Interface) public feeds;

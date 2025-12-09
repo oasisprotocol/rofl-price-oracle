@@ -13,18 +13,17 @@ artifacts:
   kernel: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.6.2/stage1.bin#e5d4d654ca1fa2c388bf64b23fc6e67815893fc7cb8b7cfee253d87963f54973
   stage2: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.6.2/stage2-podman.tar.bz2#b2ea2a0ca769b6b2d64e3f0c577ee9c08f0bb81a6e33ed5b15b2a7e50ef9a09f
   container:
-    runtime: https://github.com/oasisprotocol/oasis-sdk/releases/download/rofl-containers%2Fv0.8.4/rofl-containers#2cd0468ec2ea5f4264f47f728c5c3b0fcce93f5a537e568f8cbab8a53b526ae7
+    runtime: https://github.com/oasisprotocol/oasis-sdk/releases/download/rofl-containers%2Fv0.8.5/rofl-containers#b63e85b33d37f1c762aef85125617d87d79763c3fe3f30815301f0f9fe57179d
     compose: compose.yaml
 deployments:
   default:
-    app_id: rofl1qzcaz2y24anz6qy4w8jhuc5vj9cwhek8ustkl8a7
+    app_id: rofl1qzvnkm22czl6zqy8j0925wg9xu4vnlvdjy6fsp64
     network: testnet
     paratime: sapphire
-    admin: dave
-    oci_repository: rofl.sh/6bcb968a-a4a7-4230-8a5d-41b3dde45c83:1760027673
+    admin: myaccount
     trust_root:
-      height: 28791311
-      hash: f8455b063d8ae8f07a7524f3f4f634e4e45468e5218a9dff5b39039d52ea2c50
+      height: 29548227
+      hash: fcd9688fbec4137292bfd97894917af7fc1d13f25bebd28acacae3f20859ec32
     policy:
       quotes:
         pcs:
@@ -32,19 +31,34 @@ deployments:
           min_tcb_evaluation_data_number: 18
           tdx: {}
       enclaves:
-        - id: iJvNeKfzb3yIVuSuEt4zeGmWyszS88El6ntmoGqWupEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-        - id: M+NIY0bazPeRWrWFjo5b6lNZ2lSRUO9V2WZmzaWw4rMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - tAoPH8sxfQ82nNfJ0eY2m0zDxtjtkMdVyb55quZCE5wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - coES93iSHeBKb8N+/Gjzd7w0Pf+FfVdqKdKpsKA0Wh8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
       endorsements:
         - any: {}
       fees: endorsing_node
       max_expiration: 3
     secrets:
+      - name: FETCH_PERIOD
+        value: pGJwa1ggA2jUcpN91+yLV3ZBatAgCXG2/RGC+RZAKspH6A21eDlkbmFtZVgcWDD+Q9vbgfaChF+M2N9P3f4EHR9t3r753w3yqmVub25jZU9OLGUwFkL7MAIS8kTpdjRldmFsdWVT/X3dkREIp1H+Zk8kGpo6HRk/Ug==
       - name: NETWORK
-        value: pGJwa1ggudfghDLWrv+02D/nTMlJrsdzyZra3WWtz+P7KVyxFwVkbmFtZVfIViBAdj6U7PYelwu/Fhrgbs30G+WGuWVub25jZU/GgNJypbakZN8oiFxkwjxldmFsdWVYIIwS6KUXxeiWJ79PzcHJ20MEtUVcQtTl8j9pGuvQasXB
+        value: pGJwa1gg7ecJkoZrJXjg3MoBaRLUSlmxRhOYZY4CCH4uNg+ubABkbmFtZVfK1hObo8p+ecxtRp3OeKCWujjdkZHyGWVub25jZU/2oiAWU7Lgm5rT2YpFDcVldmFsdWVYIMHb6aaQiI9q3wUbc8tB2Krwi5XBZEm2Huu2B7BS9ki1
       - name: PAIR
-        value: pGJwa1ggb1Xme1+eA8Wiq+kD9PnYyRfbaaKAazTBbVZHLCMnUkpkbmFtZVQJzYCWD31/cysHLZEqb020T+3gWGVub25jZU9dqsgKyBe7MzX4cAPkUnVldmFsdWVYph1vls6+2Y8+6DmYhOvsJpIykswrM7IJwrlD1Ibt/8GbbbUTKzcTd8ZRI7ytz8dlxk+c0eZHdDhU9WZLoIYE1kAySgCHQz+4gmTuI/LIwQzdz6Cr1XCRGJh/Gqc0Bl62yINgrLwaGN6+SHia4kMVAAoglbLFjLeZI7N0tU/cPiYnAGqAE8kgrLoRXS50LqM1BFcQeQ89GunNT+AK3gjrqQoCmPbsFDU=
-    machines:
-      default:
-        provider: oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz
-        offer: playground_short
-        id: "0000000000000335"
+        value: pGJwa1ggV14+JZxtWa6vGMyZwVHgiCvDFAEd+AYuNSGfET74Sz5kbmFtZVSAAHTtyVJggh9T3KjzVLEm4qqqeGVub25jZU8WEv9Kh49JmtFxhxkgO5tldmFsdWVYJN9iROfyj3qFGP0sHv3ARgcRXwxjtqLNTVTF17RLBCyuruY2Yg==
+      - name: SUBMIT_PERIOD
+        value: pGJwa1ggfX+wjHo48FC0pdQxb/nZo1ks21T70tjT9YMj0OjMUjRkbmFtZVgdEnrK7StPuuYQPS+qR9j3hXGvWraXnRpvV3S4yG9lbm9uY2VPbp6vwXBdjvOJF8S9P/ASZXZhbHVlUxSbtfnIhz4AY3I6FHIY9cCo6Ls=
+      - name: API_KEY_COINGECKO
+        value: pGJwa1ggg8hNu6DBT9d9KZ6U/k86dvKzCBsxIdZ3an/zZ1O5JDBkbmFtZVghlQ/0qq7jf1I9iC9kYpeXBxttoAHyHIyFepzVcHuAp8uGZW5vbmNlT95Q5KbV263FYIcmgGjy/mV2YWx1ZVgwE5Nsq0H6QGf2zc7dCL1lk+eBO1c3ScrMuJxFNP42npCuMc1PA5GiPHUAV5oOKwAt
+      - name: API_KEY_COINMARKETCAP
+        value: pGJwa1ggjQP3oVuHUI+7pBhsKDCok1obnrRX4DGgv6X2TO7H7RpkbmFtZVglX+AwWj6Km4dJYB9RioQTkUoWWpNgXwyUFot7xhuyb2/V6xWQgWVub25jZU9jY4jgCQOvwzDtq02+PKVldmFsdWVYMOksFfd41pUjM+mxtQmf89igYfYPg5ibewq0c8zkYk3K8JALXHQxYgFQH9RIrfMMnQ==
+      - name: DRIFT_LIMIT_PERCENT
+        value: pGJwa1gg/+AL4KqSkEY61Gl01YvwoT3MI1lkodmQNoqUcuEoXX1kbmFtZVgjvMek8ZocVcMY70Yrwol/eOPVcPrqIHfMQBkRwKIl8CqEvWBlbm9uY2VPLusmfQcylM4Z5z45grO7ZXZhbHVlVGTWkxst4tvje/+KQO8aUsYsNpIW
+      - name: FETCH_TIMEOUT
+        value: pGJwa1ggwES4pjPgmBV2mAcgKPuU3ZnRf4NT9a1i159wqlzx7ApkbmFtZVgdY0C84uLSsGuJkimr1/Vg39v2CDHUjg8Jqk1wd+Jlbm9uY2VPq6jGOAXJ1nhkT+okukyPZXZhbHVlVPrbhqbaLcWzIlJcE+4PG/OzQ41s
+      - name: MAX_DEVIATION_PERCENT
+        value: pGJwa1ggydLLbMzBDt2ynk+wVBZ0oOIvzMDrr3tmC2LxQ5A/9H1kbmFtZVglMOhVUDdHtmPw3+1XBd59/M/BJVn0UyRhmumSki0PGOLtXgJ4T2Vub25jZU+nu0UluQYYIiBNz1NiLXxldmFsdWVTwr1A8qlWZnlovuRcpYYEZFCXtQ==
+      - name: MIN_SOURCES
+        value: pGJwa1ggYbw9rojI+kOUjplm7zJ9kX2FqBiQjkAlR3CoH8HjfR1kbmFtZVgbeM7rcMEDH2YjsTXL2Ejj46dxy01xavIJalUAZW5vbmNlTz3Fi5Ee+SyGf7Bcavn4VmV2YWx1ZVFYIT2DK0We9AW1gUQGpVKf/Q==
+      - name: PAIRS
+        value: pGJwa1gg4DH5uCF7atWHYsdKoV9qetsgO6oqOTm/WcjeEA1OGC1kbmFtZVWqBk2QIHJoxJbYE2FQvz98InlbeJ5lbm9uY2VPZRrIBnMdYUgAYATYTFpZZXZhbHVlWCE/CFBE76nMtbtWivmCCta8CdQz2sEbHHCZAav96fKwSGU=
+      - name: SOURCES
+        value: pGJwa1ggMvs0BBa3bMVkrStpAZtjXfyx+jzg9mXykSdezRYKkjtkbmFtZVexhQW6KA7ql+7szRCrThLLas21iYMC/GVub25jZU97tV+tSSBugDx45h/uf+VldmFsdWVYS6sHYmj8aTOqmufd1yB+vDiLcl1jz54Lnb8rTcS7cRSo6OVKBKBwrbj7/oDvwuNzKcgSM/M2DMX3Vzdc+eq2JDWIqAaIOFFash1Dqw==
