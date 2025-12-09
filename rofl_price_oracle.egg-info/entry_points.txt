@@ -1,2 +1,0 @@
-[console_scripts]
-rofl-price-oracle = oracle.main:main
