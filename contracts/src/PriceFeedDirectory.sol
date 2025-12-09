@@ -27,7 +27,7 @@ contract PriceFeedDirectory {
     // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/aggregated/eth/usd")
     // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/aggregated/rose/usd")
     //
-    // Legacy per-exchange or DEX formats (still accepted):
+    // Direct per-exchange keys or DEX formats:
     // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/bitstamp.net/btc/usd")
     // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/uniswap.org/polygon/native/1bfd67037b42cf73acf2047067bd4f2c47d9bfd6")
     // - keccak256("005a216eb7f450bcc1f534a7575fb33d611b463fa2/uniswap.org/base/833589fCD6eDb6E08f4c7C32D4f71b54bdA02913/1bfd67037b42cf73acf2047067bd4f2c47d9bfd6")

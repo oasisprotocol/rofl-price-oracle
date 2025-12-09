@@ -71,44 +71,66 @@ make install   # installs .[dev] using pyproject.toml
 
 ### Running the Oracle
 
-```bash
-# Basic usage (free APIs only)
-python -m oracle.main \
-  --pairs btc/usd,eth/usd,rose/usd \
-  --sources coinbase,kraken,bitstamp,coingecko \
-  --network sapphire-testnet
+The oracle is always started via Docker Compose and configured through environment variables.
 
-# With CoinMarketCap for additional ROSE coverage
-python -m oracle.main \
-  --pairs btc/usd,eth/usd,rose/usd \
-  --sources coinbase,coingecko,coinmarketcap \
-  --api-keys coinmarketcap=your-api-key \
-  --min-sources 2 \
-  --submit-period 300
-```
+#### Local Testing (without ROFL TEE)
 
-You can also use the Makefile shortcut from the project root:
+Use `compose.local.yaml` for local development against `sapphire-localnet`:
 
 ```bash
-make run
+# 1. Start sapphire-localnet (if not already running)
+docker run -d -p8545:8545 -p8546:8546 ghcr.io/oasisprotocol/sapphire-localnet -test-mnemonic
+
+# 2. Deploy mock contracts
+cd contracts && forge script script/DeployMocks.s.sol --rpc-url sapphire-localnet --broadcast && cd ..
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env with your configuration (PAIRS, SOURCES, PRICE_FEED_ADDRESS, etc.)
+
+# 4. Run with local compose file
+docker compose -f compose.local.yaml up --build
 ```
+
+The `compose.local.yaml` uses `RoflUtilityLocalnet` with a hardcoded test key—no ROFL appd socket required.
+
+#### Production Deployment (ROFL)
+
+Use `compose.yaml` for ROFL TEE deployment. The compose file is referenced within the ROFL app manifest.
+
+```bash
+# 1. Configure environment
+cp .env.example .env
+# Edit .env:
+#   - NETWORK=sapphire-testnet or NETWORK=sapphire
+#   - PRICE_FEED_ADDRESS=<your deployed PriceFeedDirectory>
+#   - API keys for paid sources (if any)
+
+# 2. Build, update, and deploy the ROFL app
+oasis rofl build
+oasis rofl update
+oasis rofl deploy
+```
+
+The `compose.yaml` mounts `/run/rofl-appd.sock` for TEE-authenticated transactions via the ROFL runtime.
 
 ### Configuration
 
-Configuration can be set via environment variables or CLI flags (CLI takes precedence):
+All configuration is done via environment variables in your `.env` file:
 
-| Variable | CLI Flag | Default | Description |
-|----------|----------|---------|-------------|
-| `PAIRS` | `--pairs` | `btc/usd` | Comma-separated trading pairs |
-| `SOURCES` | `--sources` | `coinbase,kraken,bitstamp,coingecko` | Price sources |
-| `MIN_SOURCES` | `--min-sources` | `2` | Minimum valid sources required |
-| `MAX_DEVIATION_PERCENT` | `--max-deviation` | `5.0` | Outlier threshold |
-| `DRIFT_LIMIT_PERCENT` | `--drift-limit` | `10.0` | Max price change (0 to disable) |
-| `FETCH_PERIOD` | `--fetch-period` | `60` | Seconds between fetches |
-| `SUBMIT_PERIOD` | `--submit-period` | `300` | Seconds between on-chain submissions |
-| `NETWORK` | `--network` | `sapphire-localnet` | Target network |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PAIRS` | `btc/usd` | Comma-separated trading pairs |
+| `SOURCES` | `coinbase,kraken,bitstamp,coingecko` | Price sources to query |
+| `MIN_SOURCES` | `2` | Minimum valid sources required |
+| `MAX_DEVIATION_PERCENT` | `5.0` | Outlier threshold (%) |
+| `DRIFT_LIMIT_PERCENT` | `10.0` | Max price change per round (0 to disable) |
+| `FETCH_PERIOD` | `60` | Seconds between price fetches |
+| `SUBMIT_PERIOD` | `300` | Seconds between on-chain submissions |
+| `NETWORK` | `sapphire-localnet` | Target network |
+| `PRICE_FEED_ADDRESS` | — | PriceFeedDirectory contract address |
 
-See `.env.example` for full configuration documentation.
+See `.env.example` for full documentation including API key configuration.
 
 ### Available Price Sources
 
@@ -157,25 +179,14 @@ forge create ... --rpc-url https://testnet.sapphire.oasis.io
 forge create ... --rpc-url https://sapphire.oasis.io
 ```
 
-### Local Testing (without ROFL TEE)
+### Mock Contracts (for Local Testing)
 
-For local development, mock contracts are available that don't require TEE verification:
+Mock contracts are provided for local development without TEE verification:
 
-```bash
-# 1. Start sapphire-localnet
-docker run -it -p8545:8545 -p8546:8546 ghcr.io/oasisprotocol/sapphire-localnet -test-mnemonic
-
-# 2. Deploy mock contracts (uses default localnet address 0x5FbDB...aa3)
-cd contracts
-forge script script/DeployMocks.s.sol --rpc-url sapphire-localnet --broadcast
-
-# 3. Run with docker compose
-docker compose -f compose.local.yaml up --build
-```
-
-Mock contracts:
 - `MockPriceFeedDirectory` - No ROFL app ID verification
 - `MockSimpleAggregator` - No TEE check on `submitObservation()`
+
+See [Local Testing](#local-testing-without-rofl-tee) in the Running section above for full setup instructions.
 
 ### Running Contract Tests
 

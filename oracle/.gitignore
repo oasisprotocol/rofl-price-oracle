@@ -1,3 +1,4 @@
 my_env
 compiled_contracts
 *.pyc
+*.egg-info

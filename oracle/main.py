@@ -1,23 +1,10 @@
 #!/usr/bin/env python3
-"""ROFL Price Oracle CLI.
+"""ROFL Price Oracle.
 
-Aggregates cryptocurrency prices from multiple off-chain sources and submits
-the median price to on-chain aggregator contracts.
+Fetches cryptocurrency prices from multiple off-chain sources, computes
+the median price and stores the results to on-chain aggregator contracts.
 
-Usage::
-
-    python -m oracle.main --pairs btc/usd,eth/usd --sources coinbase,kraken,coingecko
-
-Environment variables can also be used (CLI args take precedence)::
-
-    PAIRS=btc/usd,eth/usd,rose/usd
-    SOURCES=coinbase,kraken,bitstamp,coingecko
-    MIN_SOURCES=2
-    MAX_DEVIATION_PERCENT=5.0
-    DRIFT_LIMIT_PERCENT=10.0
-    FETCH_PERIOD=60
-    SUBMIT_PERIOD=300
-    NETWORK=sapphire-testnet
+Start via Docker Compose with env vars. See README.md and .env.example for configuration.
 """
 
 import argparse
