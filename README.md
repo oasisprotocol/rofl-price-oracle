@@ -6,6 +6,33 @@ A simple python-based client that runs in ROFL that queries a centralized
 exchange and stores price quotes to the Sapphire smart contract. Multiple
 exchanges and trading pairs are supported.
 
+## Contracts Maintained by Oasis
+
+Feel free to use the [`PriceFeedDirectory`] singleton on Sapphire to 
+discover public price feeds and register your own feeds:
+
+| Contract             | Sapphire Mainnet                             | Sapphire Testnet                             |
+|----------------------|----------------------------------------------|----------------------------------------------|
+| `PriceFeedDirectory` | `0x1e1A7E15dd6eEeD48e00530d31fCf408F40E0A12` | `0xB3E8721A5E9bb84Cfa99b50131Ac47341B4a9EfF` |
+
+Oasis maintains the following [`AggregatorV3Interface`] trading pair price 
+feeds on Sapphire which you can use to build your DeFi dapp:
+
+| Trading pair              | Sapphire Mainnet                             | Sapphire Testnet                             |
+|---------------------------|----------------------------------------------|----------------------------------------------|
+| `binance.us/rose/usdt`    | `0x9063375dc7A8f125d31DA43b8a02B1e065bAa081` | `0x47EFD60558012A64649c709b350f20C7a5f5e2Aa` |
+| `binance.com/rose/usdc`   | `0xB14E3b717f9ddff678403ed7fF26614D23FBd99a` | `0x666938f7FBC353227F98DA43C050C8252eBfC0f7` |
+| `binance.us/usdt/usd`     | `0xc8E6dEed5876Ee577252ecB70DA95286a5107D78` | TBA                                          |
+| `binance.com/usdc/usd`    | `0xAC850546C3FFCA66A7D258eF14DF71135B55B44F` | TBA                                          |
+| `binance.us/eth/usdt`     | TBA                                          | `0xcE4c39fAe52C0a723c275Ab0949F84d783aF7A38` |
+| `binance.com/eth/usdc`    | TBA                                          | `0x01a6F876411B35102B7f30D801162dDE9b7593e6` |
+| `bitstamp.net/usdc/usd`   | TBA                                          | `0x9F9929a1A6510Ff289C4e0B1357b6dfF9fC1BB20` |
+| `bitstamp.net/usdt/usd`   | TBA                                          | `0xd29802275E41449f675A2650629fBB268D2Ab52d` |
+| `bitstamp.net/usdc/usdt`  | TBA                                          | `0x1BeC39e4ca3B1Da500261333005578d8CA6A21b4` |
+
+[`AggregatorV3Interface`]: https://docs.chain.link/chainlink-local/api-reference/v022/aggregator-v3-interface
+[`PriceFeedDirectory`]: ./contracts/src/PriceFeedDirectory.sol
+
 ## Contracts
 
 Solidity contracts for the price feed directory and a simple aggregator are 

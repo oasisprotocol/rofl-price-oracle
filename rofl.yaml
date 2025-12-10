@@ -1,5 +1,9 @@
 name: rofl-price-oracle
 version: 0.1.0
+repository: https://github.com/oasisprotocol/rofl-price-oracle
+description: Fetches price quotes of provided pairs from CEXes and stores them to a ChainLink's AggregatorV3Interface contract on Sapphire.
+author: Matevž Jekovec <matevz@oasisprotocol.org>
+license: Apache-2.0
 tee: tdx
 kind: container
 resources:
@@ -9,14 +13,41 @@ resources:
     kind: disk-persistent
     size: 2000
 artifacts:
+  builder: ghcr.io/oasisprotocol/rofl-container-builder:0.0.1@sha256:913ef97ab07dde31f08ce873f825bf3d4f32ad4102ff5797d7c3050c121c4dce
   firmware: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.6.2/ovmf.tdx.fd#db47100a7d6a0c1f6983be224137c3f8d7cb09b63bb1c7a5ee7829d8e994a42f
   kernel: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.6.2/stage1.bin#e5d4d654ca1fa2c388bf64b23fc6e67815893fc7cb8b7cfee253d87963f54973
   stage2: https://github.com/oasisprotocol/oasis-boot/releases/download/v0.6.2/stage2-podman.tar.bz2#b2ea2a0ca769b6b2d64e3f0c577ee9c08f0bb81a6e33ed5b15b2a7e50ef9a09f
   container:
-    runtime: https://github.com/oasisprotocol/oasis-sdk/releases/download/rofl-containers%2Fv0.8.4/rofl-containers#2cd0468ec2ea5f4264f47f728c5c3b0fcce93f5a537e568f8cbab8a53b526ae7
+    runtime: https://github.com/oasisprotocol/oasis-sdk/releases/download/rofl-containers%2Fv0.8.5/rofl-containers#b63e85b33d37f1c762aef85125617d87d79763c3fe3f30815301f0f9fe57179d
     compose: compose.yaml
 deployments:
-  default:
+  mainnet:
+    app_id: rofl1qph068ccezgmw25qtrv47z8ecv898wzk2g8ys99w
+    network: mainnet
+    paratime: sapphire
+    admin: matevz_rofl
+    trust_root:
+      height: 27654181
+      hash: da81b26ad8e854ad140d6d6e8570636caa6957c896350893d91d4cbb924b2860
+    policy:
+      quotes:
+        pcs:
+          tcb_validity_period: 30
+          min_tcb_evaluation_data_number: 18
+          tdx: {}
+      enclaves:
+        - id: /AkLAIX7gsPs3+7+5JfZ6aTjVHP59WpYMSAt2JlqMZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - id: BKNw91V2hnFeh4JtggURoPVYNiUC3RHGm1Btx8PUdksAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+      endorsements:
+        - any: {}
+      fees: endorsing_node
+      max_expiration: 3
+    secrets:
+      - name: NETWORK
+        value: pGJwa1gg3lT4Rnk+TTosEnb3MHQtDzaZ2QFkXxeXXfGMwAfcFTRkbmFtZVeFJPi6WfSVNXzvPIF4h+4Ybzfw/oilGGVub25jZU9RvjnQNHVRqwVYJNEV26NldmFsdWVYGMtniWUmrcldGAFKEaPn1QHALLIszOJPrw==
+      - name: PAIR
+        value: pGJwa1ggjhTDjjoVDhgq7pWPqEg0FwxWOVs0Lrdw0CUjme84HTlkbmFtZVRRcrJPfy5FSxoAtV0QmnSKAAj7UWVub25jZU/c3lzpDOsdyDhWgYdTGlZldmFsdWVYY1+HrEssKNmeH4DVwk38uAUTYhtPippanzwxSglmog1lTdbo94FFohJcf0psPF/L+Hw7x+QQY74L6Fu4Stqn7y3/+NKSi75Lhw3OmOfsW1I6/CcIuEuTHh1dSbJxZksl6713dA==
+  testnet:
     app_id: rofl1qzcaz2y24anz6qy4w8jhuc5vj9cwhek8ustkl8a7
     network: testnet
     paratime: sapphire
@@ -32,8 +63,8 @@ deployments:
           min_tcb_evaluation_data_number: 18
           tdx: {}
       enclaves:
-        - id: iJvNeKfzb3yIVuSuEt4zeGmWyszS88El6ntmoGqWupEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-        - id: M+NIY0bazPeRWrWFjo5b6lNZ2lSRUO9V2WZmzaWw4rMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - id: bXi2Wpq4zkpvnD6AJy/kF7lgcLmo7ynyGDQJ1j4FVf0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+        - id: gDDSB+VdP4bKrw/g0Sf/+yWbBmR8MZLKw/LRohBf2PoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
       endorsements:
         - any: {}
       fees: endorsing_node
@@ -48,3 +79,5 @@ deployments:
         provider: oasis1qp2ens0hsp7gh23wajxa4hpetkdek3swyyulyrmz
         offer: playground_short
         id: "0000000000000335"
+tooling:
+  version: 0.17.1-git1323206
