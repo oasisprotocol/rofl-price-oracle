@@ -258,7 +258,7 @@ class PriceOracle:
                 continue
 
             print(f"{pair} price: ${price:.10f}")
-            cur_timestamp = int(time.time())
+            cur_timestamp = int(time.time()) - 12 # TODO: Workaround for https://github.com/oasisprotocol/rofl-paymaster/issues/13
             obs = (int(price * 10**num_decimals), cur_timestamp)
             observations.append(obs)
 
