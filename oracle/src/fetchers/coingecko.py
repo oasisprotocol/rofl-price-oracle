@@ -119,7 +119,7 @@ class CoinGeckoFetcher(BaseFetcher):
             logger.warning(f"[coingecko] Failed to parse response: {e}")
             return None
 
-    def supports_pair(self, base: str, quote: str) -> bool:
+    async def supports_pair(self, base: str, quote: str) -> bool:
         """Check if pair is supported (base must be in COIN_IDS).
 
         :param base: Base currency symbol.

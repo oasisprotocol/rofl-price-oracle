@@ -72,7 +72,7 @@ class KrakenFetcher(BaseFetcher):
             logger.warning(f"[kraken] Failed to parse response for {pair}: {e}")
             return None
 
-    def supports_pair(self, base: str, quote: str) -> bool:
+    async def supports_pair(self, base: str, quote: str) -> bool:
         """Check if pair is supported (Kraken doesn't support ROSE).
 
         :param base: Base currency symbol.

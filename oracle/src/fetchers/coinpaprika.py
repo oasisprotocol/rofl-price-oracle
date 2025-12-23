@@ -90,7 +90,7 @@ class CoinpaprikaFetcher(BaseFetcher):
             logger.warning(f"[coinpaprika] Failed to parse response for {coin_id}: {e}")
             return None
 
-    def supports_pair(self, base: str, quote: str) -> bool:
+    async def supports_pair(self, base: str, quote: str) -> bool:
         """Check if pair is supported (base must be in COIN_IDS).
 
         :param base: Base currency symbol.

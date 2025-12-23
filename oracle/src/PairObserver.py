@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Callable
 from .AggregatedPair import AggregatedPair
 from .PriceAggregator import PriceAggregator
 from .SourceManager import SourceManager
-from .usdt_rate_cache import UsdtRateCache
 
 if TYPE_CHECKING:
     from web3.contract import Contract
@@ -164,10 +163,6 @@ class PairObserver:
         assert median_price is not None
         self.last_good_median = median_price
         meta = agg_result.metadata
-
-        # Populate USDT rate cache if this is usdt/usd pair
-        if self.pair.pair_base == "usdt" and self.pair.pair_quote == "usd":
-            UsdtRateCache.set(median_price)
 
         # Log aggregated price
         sources_used = meta.get("sources", [])

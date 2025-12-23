@@ -64,7 +64,7 @@ class EODHDFetcher(BaseFetcher):
             logger.warning(f"[eodhd] Failed to parse response: {e}")
             return None
 
-    def supports_pair(self, base: str, quote: str) -> bool:
+    async def supports_pair(self, base: str, quote: str) -> bool:
         """Check if pair is supported (EODHD only supports USD quotes).
 
         :param base: Base currency symbol.
