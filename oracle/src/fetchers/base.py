@@ -134,10 +134,11 @@ class BaseFetcher(ABC):
         """
         pass
 
-    def supports_pair(self, base: str, quote: str) -> bool:
+    async def supports_pair(self, base: str, quote: str) -> bool:
         """Check if this fetcher supports the given trading pair.
 
         Override in subclasses to restrict supported pairs.
+        Can make API calls if needed (e.g., to check symbol availability).
 
         :param base: Base currency symbol.
         :param quote: Quote currency symbol.
@@ -169,7 +170,7 @@ class BaseFetcher(ABC):
         """
         results: dict[tuple[str, str], float | None] = {}
         for base, quote in pairs:
-            if self.supports_pair(base, quote):
+            if await self.supports_pair(base, quote):
                 results[(base, quote)] = await self.fetch(base, quote)
             else:
                 results[(base, quote)] = None

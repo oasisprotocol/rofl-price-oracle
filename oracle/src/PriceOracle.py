@@ -123,15 +123,6 @@ class PriceOracle:
         if not self.pairs:
             raise ValueError("At least one trading pair must be specified")
 
-        # Auto-add usdt/usd pair when Binance is configured (for USDT conversion)
-        if "binance" in self.sources:
-            usdt_pair = AggregatedPair("usdt", "usd")
-            if usdt_pair not in self.pairs:
-                self.pairs.insert(0, usdt_pair)  # Add at front for earlier fetch
-                logger.info(
-                    "Auto-added usdt/usd pair (required for Binance USDT conversion)"
-                )
-
         # Initialize contract utilities
         contract_utility = ContractUtility(network_name)
         self.w3: Web3 = contract_utility.w3
@@ -178,27 +169,8 @@ class PriceOracle:
             api_key = self.api_keys.get(source)
             self.fetchers[source] = get_fetcher(source, api_key=api_key)
 
-        # Precompute supported sources per pair so unsupported sources do not
-        # get penalized via backoff for pairs they can never serve.
+        # Initialized in run() via _compute_pair_sources()
         self.pair_sources: dict[AggregatedPair, list[str]] = {}
-        for pair in self.pairs:
-            supported: list[str] = []
-            for source in self.sources:
-                fetcher = self.fetchers[source]
-                try:
-                    if fetcher.supports_pair(pair.pair_base, pair.pair_quote):
-                        supported.append(source)
-                except Exception as exc:  # Defensive: misbehaving fetcher
-                    logger.warning(
-                        f"[{source}] supports_pair({pair}) raised {exc}; "
-                        "treating as unsupported"
-                    )
-            if not supported:
-                raise ValueError(
-                    f"No configured sources support pair {pair}. "
-                    f"Sources: {self.sources}"
-                )
-            self.pair_sources[pair] = supported
 
         # Create batch fetch coordinator
         self.batch_coordinator = BatchFetchCoordinator(
@@ -381,12 +353,41 @@ class PriceOracle:
 
             await asyncio.sleep(self.fetch_period)
 
+    async def _compute_pair_sources(self) -> None:
+        """Compute which sources support each pair.
+
+        :raises ValueError: If no sources support a pair.
+        """
+        for pair in self.pairs:
+            supported: list[str] = []
+            for source in self.sources:
+                fetcher = self.fetchers[source]
+                try:
+                    if await fetcher.supports_pair(pair.pair_base, pair.pair_quote):
+                        supported.append(source)
+                except Exception as exc:  # Defensive: misbehaving fetcher
+                    logger.warning(
+                        f"[{source}] supports_pair({pair}) raised {exc}; "
+                        "treating as unsupported"
+                    )
+
+            if not supported:
+                raise ValueError(
+                    f"No configured sources support pair {pair}. "
+                    f"Sources: {self.sources}"
+                )
+            self.pair_sources[pair] = supported
+            logger.info(f"{pair}: supported by {supported}")
+
     async def run(self) -> None:
         """Run the price oracle.
 
         Initializes contracts and observers, then starts the centralized
         batch fetch loop.
         """
+        # Compute pair sources (async because some fetchers check via API)
+        await self._compute_pair_sources()
+
         # Ensure contracts exist and create observers
         for pair in self.pairs:
             self.detect_or_deploy_contract(pair)

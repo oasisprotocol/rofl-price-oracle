@@ -123,7 +123,7 @@ class BitqueryFetcher(BaseFetcher):
             logger.warning(f"[bitquery] Failed to parse response: {e}")
             return None
 
-    def supports_pair(self, base: str, quote: str) -> bool:
+    async def supports_pair(self, base: str, quote: str) -> bool:
         """Check if pair is supported (must have token addresses).
 
         :param base: Base currency symbol.

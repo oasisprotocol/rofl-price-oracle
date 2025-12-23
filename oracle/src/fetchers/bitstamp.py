@@ -50,7 +50,7 @@ class BitstampFetcher(BaseFetcher):
             logger.warning(f"[bitstamp] Failed to parse response for {pair}: {e}")
             return None
 
-    def supports_pair(self, base: str, quote: str) -> bool:
+    async def supports_pair(self, base: str, quote: str) -> bool:
         """Check if pair is supported (Bitstamp doesn't support ROSE).
 
         :param base: Base currency symbol.
