@@ -60,17 +60,20 @@ class BinanceFetcher(BaseFetcher):
         quote_u = quote.upper()
 
         if quote_u == "USD":
-            # Check direct USD pair and USDT conversion option
+            # 1. Try direct USD pair first
             direct = f"{base_u}USD"
-            usdt = f"{base_u}USDT"
-            prices = await self._fetch_symbols([direct, usdt, "USDTUSD"])
-
+            prices = await self._fetch_symbols([direct])
             if prices.get(direct) is not None:
                 BinanceFetcher._pair_info[key] = (direct, False)
                 return True
+
+            # 2. Try USDT conversion
+            usdt = f"{base_u}USDT"
+            prices = await self._fetch_symbols([usdt, "USDTUSD"])
             if prices.get(usdt) is not None and prices.get("USDTUSD") is not None:
                 BinanceFetcher._pair_info[key] = (usdt, True)
                 return True
+
             return False
 
         # Non-USD quote - check direct pair
@@ -157,7 +160,9 @@ class BinanceFetcher(BaseFetcher):
         """
         url = f"{self.BASE_URL}/ticker/price"
         try:
-            response = await self._get(url, params={"symbols": json.dumps(symbols)})
+            response = await self._get(
+                url, params={"symbols": json.dumps(symbols, separators=(",", ":"))}
+            )
             data = response.json()
 
             result: dict[str, float | None] = {s: None for s in symbols}
