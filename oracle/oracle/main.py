@@ -4,7 +4,8 @@
 Fetches cryptocurrency prices from multiple off-chain sources, computes
 the median price and stores the results to on-chain aggregator contracts.
 
-Start via Docker Compose with env vars. See README.md and .env.example for configuration.
+Start via Docker Compose with env vars.
+See README.md and .env.example for configuration.
 """
 
 import argparse
@@ -107,7 +108,7 @@ Environment variables (CLI args take precedence):
     parser.add_argument(
         "--sources",
         type=str,
-        help=f"Comma-separated price sources. Available: {', '.join(available_sources)}",
+        help=f"Comma-separated price sources. Available: {', '.join(available_sources)}",  # noqa: E501
         default=os.environ.get("SOURCES") or "coinbase,kraken,bitstamp,coingecko",
     )
 
@@ -169,7 +170,7 @@ Environment variables (CLI args take precedence):
     parser.add_argument(
         "--address",
         type=str,
-        help="Comma-separated aggregator contract addresses (optional, auto-detected if not provided)",
+        help="Aggregator contract addresses, comma-separated (auto-detected)",
         default=os.environ.get("ADDRESS"),
     )
 
@@ -259,7 +260,8 @@ Environment variables (CLI args take precedence):
     logger.info(f"Sources:           {', '.join(sources)}")
     logger.info(f"Min Sources:       {args.min_sources}")
     logger.info(f"Max Deviation:     {args.max_deviation}%")
-    logger.info(f"Drift Limit:       {args.drift_limit}%" if drift_limit else "Drift Limit:       disabled")
+    drift_msg = f"{args.drift_limit}%" if drift_limit else "disabled"
+    logger.info(f"Drift Limit:       {drift_msg}")
     logger.info(f"Fetch Period:      {args.fetch_period}s")
     logger.info(f"Submit Period:     {args.submit_period}s")
     logger.info(f"Fetch Timeout:     {args.fetch_timeout}s")
