@@ -4,7 +4,7 @@ import unittest
 
 import pytest
 
-from oracle.src.RoflUtility import bech32_to_bytes
+from oracle.RoflUtility import bech32_to_bytes
 
 
 class TestRoflUtility(unittest.TestCase):

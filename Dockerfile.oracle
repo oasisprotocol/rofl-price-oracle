@@ -8,22 +8,10 @@ RUN rm -rf dependencies && forge soldeer install
 RUN forge build
 
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
-WORKDIR /app
-
-# Copy dependency files first for better layer caching
-COPY pyproject.toml uv.lock* ./
-
-# Install dependencies (cached if pyproject.toml unchanged)
+WORKDIR /oracle
+COPY oracle/pyproject.toml oracle/uv.lock* ./
 RUN uv sync --frozen --no-dev --no-install-project 2>/dev/null || uv sync --no-dev --no-install-project
-
-# Copy application code
-COPY oracle/ ./oracle/
-
-# Overlay compiled contract artifacts
+COPY oracle/oracle/ ./oracle/
 COPY --from=contracts-build /repo/contracts/out ./contracts/out
-
-# Install the project itself
 RUN uv sync --frozen --no-dev 2>/dev/null || uv sync --no-dev
-
-# CLI entrypoint; compose.yaml can override this if needed
 ENTRYPOINT ["uv", "run", "python", "-m", "oracle.main"]

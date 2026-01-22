@@ -3,7 +3,7 @@
 import pytest
 from web3 import Web3
 
-from oracle.src.AggregatedPair import AggregatedPair
+from oracle.AggregatedPair import AggregatedPair
 
 
 class TestAggregatedPairBasics:

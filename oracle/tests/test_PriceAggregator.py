@@ -2,7 +2,7 @@
 
 import pytest
 
-from oracle.src.PriceAggregator import AggregationResult, PriceAggregator
+from oracle.PriceAggregator import AggregationResult, PriceAggregator
 
 
 class TestPriceAggregatorInit:

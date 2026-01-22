@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from oracle.src.SourceManager import SourceManager, SourceStatus
+from oracle.SourceManager import SourceManager, SourceStatus
 
 
 class TestSourceManagerInit:
@@ -168,7 +168,7 @@ class TestSourceManagerActiveSources:
         assert "a" not in active
         assert "b" in active
 
-    @patch("oracle.src.SourceManager.time.time")
+    @patch("oracle.SourceManager.time.time")
     def test_source_active_after_backoff(self, mock_time) -> None:
         """Source should be active after backoff period."""
         mock_time.return_value = 1000.0
@@ -204,7 +204,7 @@ class TestSourceManagerHelpers:
         manager = SourceManager(["a"])
         assert manager.is_source_active("unknown") is False
 
-    @patch("oracle.src.SourceManager.time.time")
+    @patch("oracle.SourceManager.time.time")
     def test_get_backoff_remaining(self, mock_time) -> None:
         """get_backoff_remaining should return correct time."""
         mock_time.return_value = 1000.0

@@ -13,8 +13,8 @@ import logging
 import os
 import sys
 
-from .src.PriceOracle import DEFAULT_PRICE_FEED_ADDRESS, PriceOracle
-from .src.fetchers import get_available_fetchers
+from .fetchers import get_available_fetchers
+from .PriceOracle import DEFAULT_PRICE_FEED_ADDRESS, PriceOracle
 
 # Configure logging
 logging.basicConfig(

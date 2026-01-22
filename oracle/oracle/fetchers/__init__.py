@@ -5,7 +5,7 @@ This module provides a unified interface for fetching cryptocurrency prices
 from various exchanges and aggregator APIs.
 
 Usage:
-    from oracle.src.fetchers import get_fetcher, get_available_fetchers
+    from oracle.fetchers import get_fetcher, get_available_fetchers
 
     # Get list of available fetchers
     available = get_available_fetchers()

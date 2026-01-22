@@ -1,38 +1,35 @@
-# Install runtime + dev dependencies using uv
+# Root Makefile - thin delegator to oracle/Makefile
+# The actual Python project lives in oracle/ (self-contained with pyproject.toml)
+
 install:
-	uv sync --all-extras
+	$(MAKE) -C oracle install
 
-# Run tests (pytest)
 test:
-	uv run pytest oracle/tests
+	$(MAKE) -C oracle test
 
-# Clean up build artifacts
 clean:
-	rm -rf __pycache__
-	rm -rf oracle/__pycache__
-	rm -rf oracle/src/__pycache__
-	rm -rf oracle/tests/__pycache__
-	rm -rf build/
-	rm -rf dist/
-	rm -rf *.egg-info
-	rm -rf .pytest_cache
+	$(MAKE) -C oracle clean
+	rm -rf .venv  # Clean up legacy root venv if present
 
-# Lint code with Ruff
 lint:
-	uv run ruff check oracle/src oracle/tests
+	$(MAKE) -C oracle lint
 
-# Format code with Ruff
 fmt:
-	uv run ruff format oracle/src oracle/tests
+	$(MAKE) -C oracle fmt
 
-# Run all checks (linting, testing)
-check: lint test
+check:
+	$(MAKE) -C oracle check
 
-# Create a distribution package
 dist:
-	uv build
+	$(MAKE) -C oracle dist
 
-# Run the application
 run:
-	uv run python -m oracle.main
+	$(MAKE) -C oracle run
 
+run-localnet:
+	$(MAKE) -C oracle run-localnet
+
+run-localnet-debug:
+	$(MAKE) -C oracle run-localnet-debug
+
+.PHONY: install test clean lint fmt check dist run run-localnet run-localnet-debug

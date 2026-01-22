@@ -1,31 +1,52 @@
-# Thin wrapper Makefile to keep legacy commands working when run from
-# the oracle/ directory. All targets delegate to the root Makefile.
+# Oracle project Makefile - the real implementation
+# pyproject.toml and uv.lock live here; this is the self-contained Python project
 
+# Install runtime + dev dependencies using uv
 install:
-	$(MAKE) -C .. install
+	uv sync --all-extras
 
+# Run tests (pytest)
 test:
-	$(MAKE) -C .. test
+	uv run pytest tests
 
+# Clean up build artifacts
 clean:
-	$(MAKE) -C .. clean
+	rm -rf __pycache__
+	rm -rf oracle/__pycache__
+	rm -rf oracle/fetchers/__pycache__
+	rm -rf tests/__pycache__
+	rm -rf build/
+	rm -rf dist/
+	rm -rf *.egg-info
+	rm -rf .pytest_cache
 
+# Lint code with Ruff
 lint:
-	$(MAKE) -C .. lint
+	uv run ruff check oracle tests
 
-check:
-	$(MAKE) -C .. check
+# Format code with Ruff
+fmt:
+	uv run ruff format oracle tests
 
+# Run all checks (linting, testing)
+check: lint test
+
+# Create a distribution package
 dist:
-	$(MAKE) -C .. dist
+	uv build
 
+# Run the application
 run:
-	$(MAKE) -C .. run
+	uv run python -m oracle.main
 
+# Run sapphire-localnet for local development
 run-localnet:
-	@printf "$(CYAN)*** Starting $(BLUE)sapphire-localnet$(CYAN)...$(OFF)\n"
+	@printf "\033[36m*** Starting \033[34msapphire-localnet\033[36m...\033[0m\n"
 	@-docker run -it -p8545:8545 -p8546:8546 $(DOCKER_PLATFORM) ghcr.io/oasisprotocol/sapphire-localnet -test-mnemonic
 
+# Run sapphire-localnet in debug mode
 run-localnet-debug:
-	@printf "$(CYAN)*** Starting $(BLUE)sapphire-localnet$(CYAN) in $(MAGENTA)DEBUG$(CYAN) mode...$(OFF)\n"
+	@printf "\033[36m*** Starting \033[34msapphire-localnet\033[36m in \033[35mDEBUG\033[36m mode...\033[0m\n"
 	@-docker run -it -p8545:8545 -p8546:8546 $(DOCKER_PLATFORM) -e OASIS_NODE_LOG_LEVEL=debug -e LOG__LEVEL=debug ghcr.io/oasisprotocol/sapphire-localnet -test-mnemonic
+
+.PHONY: install test clean lint fmt check dist run run-localnet run-localnet-debug
