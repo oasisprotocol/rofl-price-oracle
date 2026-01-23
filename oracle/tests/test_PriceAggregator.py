@@ -39,6 +39,15 @@ class TestPriceAggregatorInit:
         with pytest.raises(ValueError, match="max_deviation_percent must be positive"):
             PriceAggregator(max_deviation_percent=-1)
 
+    def test_max_deviation_none_disables_check(self) -> None:
+        """max_deviation_percent=None should skip outlier filtering."""
+        agg = PriceAggregator(min_sources=2, max_deviation_percent=None)
+        # 100 and 200 differ by 100% but no outlier filtering applied
+        result = agg.aggregate({"a": 100.0, "b": 200.0})
+        assert result.success
+        assert result.price == 150.0  # median of [100, 200]
+        assert result.metadata.get("dropped") == {}
+
     def test_invalid_drift_limit(self) -> None:
         """drift_limit_percent <= 0 should raise ValueError."""
         with pytest.raises(ValueError, match="drift_limit_percent must be positive"):

@@ -28,6 +28,34 @@ class KrakenFetcher(BaseFetcher):
         "btc": "XBT",  # Kraken uses XBT instead of BTC
     }
 
+    def _find_pair_data(
+        self, result_data: dict, kraken_pair: str, kraken_quote: str
+    ) -> dict | None:
+        """Find pair data in Kraken response, handling X/Z prefix variants.
+
+        :param result_data: The "result" dict from Kraken's response.
+        :param kraken_pair: Expected pair key (e.g., "XBTUSD").
+        :param kraken_quote: Quote portion (e.g., "USD").
+        :returns: Pair ticker data dict or None if not found.
+        """
+        pair_data = result_data.get(kraken_pair)
+        if pair_data is not None:
+            return pair_data
+
+        for key in result_data:
+            if kraken_pair in key:
+                return result_data[key]
+            # Kraken prefixes crypto with X and fiat with Z
+            # e.g., "XXBTZUSD" for pair "XBTUSD"
+            stripped = key[1:] if key.startswith("X") else key
+            z_quote = f"Z{kraken_quote}"
+            if stripped.endswith(z_quote):
+                stripped = stripped[: -len(z_quote)] + kraken_quote
+            if stripped == kraken_pair:
+                return result_data[key]
+
+        return None
+
     async def fetch(self, base: str, quote: str) -> float | None:
         """Fetch price from Kraken.
 
@@ -58,8 +86,10 @@ class KrakenFetcher(BaseFetcher):
                 logger.warning(f"[kraken] No result for {pair}")
                 return None
 
-            # Kraken returns results with pair names as keys (may vary slightly)
-            pair_data = list(result.values())[0]
+            pair_data = self._find_pair_data(result, pair, kraken_quote)
+            if pair_data is None:
+                logger.warning(f"[kraken] Pair key not found in result for {pair}")
+                return None
 
             # 'c' is the last trade closed array: [price, lot volume]
             price = pair_data["c"][0]
@@ -108,7 +138,7 @@ class KrakenFetcher(BaseFetcher):
         pair_to_kraken: dict[tuple[str, str], str] = {}
 
         for base, quote in pairs:
-            if not self.supports_pair(base, quote):
+            if not await self.supports_pair(base, quote):
                 results[(base, quote)] = None
                 continue
 
@@ -147,21 +177,11 @@ class KrakenFetcher(BaseFetcher):
                 return results
 
             # Map results back to original pairs
-            # Kraken returns results with pair names as keys (may vary slightly)
             for base, quote in supported_pairs:
                 kraken_pair = pair_to_kraken[(base, quote)]
-
-                # Kraken might use different key formats, try exact match first
-                pair_data = result_data.get(kraken_pair)
-
-                # If not found, try to find a matching key
-                if pair_data is None:
-                    for key in result_data:
-                        # Kraken sometimes prefixes with X or Z
-                        normalized = key.replace("X", "").replace("Z", "")
-                        if kraken_pair in key or normalized == kraken_pair:
-                            pair_data = result_data[key]
-                            break
+                pair_data = self._find_pair_data(
+                    result_data, kraken_pair, quote.upper()
+                )
 
                 if pair_data is None:
                     results[(base, quote)] = None

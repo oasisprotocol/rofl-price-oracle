@@ -1,9 +1,12 @@
-# Don't copy over rust binaries for testing.
-contracts/dependencies/@oasisprotocol-sapphire-foundry-*/precompiles
-
 # Version control
 .git
 .github
+
+# Contract build artifacts (rebuilt in Docker)
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/dependencies/
 
 # Python artifacts
 __pycache__
@@ -24,9 +27,6 @@ venv
 .env
 .env.*
 !.env.example
-
-# Package manager locks (not needed in container)
-uv.lock
 
 # IDE and editor
 .idea/

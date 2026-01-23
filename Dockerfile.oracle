@@ -1,17 +1,23 @@
-FROM ghcr.io/foundry-rs/foundry:latest AS contracts-build
+FROM ghcr.io/foundry-rs/foundry:stable@sha256:043752653d5be351c71709091b3db97c4421c907eb40ea294195e7f532aadf46 AS contracts-build
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 USER foundry
-COPY --chown=foundry . /repo
+COPY --chown=foundry contracts/ /repo/contracts/
 WORKDIR /repo/contracts
-RUN rm -rf dependencies && forge soldeer install
-RUN forge build
+RUN forge soldeer install && FOUNDRY_FFI=false forge build
 
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim@sha256:add251a8fbfa14ff5e115adf93cb113c7b58c57bc84f0992164f5b6631b3451f
 WORKDIR /oracle
-COPY oracle/pyproject.toml oracle/uv.lock* ./
-RUN uv sync --frozen --no-dev --no-install-project 2>/dev/null || uv sync --no-dev --no-install-project
+
+COPY oracle/pyproject.toml oracle/uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+
 COPY oracle/oracle/ ./oracle/
-COPY --from=contracts-build /repo/contracts/out ./contracts/out
-RUN uv sync --frozen --no-dev 2>/dev/null || uv sync --no-dev
-ENTRYPOINT ["uv", "run", "python", "-m", "oracle.main"]
+RUN uv sync --frozen --no-dev
+
+COPY --from=contracts-build /repo/contracts/out /contracts/out
+
+RUN useradd --create-home oracle
+USER oracle
+
+ENTRYPOINT ["uv", "run", "--no-sync", "python", "-m", "oracle.main"]

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import TYPE_CHECKING
 
 from .AggregatedPair import AggregatedPair
@@ -72,7 +73,7 @@ class PriceOracle:
         fetch_period: int = 60,
         submit_period: int = 300,
         min_sources: int = 2,
-        max_deviation_percent: float = 5.0,
+        max_deviation_percent: float | None = 5.0,
         drift_limit_percent: float | None = 10.0,
         fetch_timeout: float = 10.0,
     ) -> None:
@@ -255,12 +256,22 @@ class PriceOracle:
         logger.info(f"Contract deploy submitted for {pair}. Result: {result}")
         return True
 
-    def detect_or_deploy_contract(self, pair: AggregatedPair) -> None:
+    def detect_or_deploy_contract(
+        self,
+        pair: AggregatedPair,
+        max_retries: int = 10,
+        backoff_base: float = 1.0,
+        backoff_max: float = 5.0,
+    ) -> None:
         """Ensure an aggregator contract exists for the pair.
 
         First attempts to detect existing contract, then deploys if not found.
+        After deploy, polls for on-chain confirmation with exponential backoff.
 
         :param pair: Trading pair to ensure contract for.
+        :param max_retries: Max polling attempts after deploy (default: 10).
+        :param backoff_base: Initial backoff delay in seconds (default: 1.0).
+        :param backoff_max: Maximum backoff delay in seconds (default: 5.0).
         :raises RuntimeError: If contract cannot be detected or deployed.
         """
         if pair in self.contracts:
@@ -276,12 +287,19 @@ class PriceOracle:
         # Deploy new contract
         self._deploy_contract(pair)
 
-        # Try to detect again
-        if self._detect_contract(pair, app_id_bytes):
-            return
+        # Poll for on-chain confirmation with exponential backoff
+        for attempt in range(max_retries):
+            delay = min(backoff_base * (1.5 ** attempt), backoff_max)
+            time.sleep(delay)
+            if self._detect_contract(pair, app_id_bytes):
+                return
+            logger.debug(
+                f"{pair}: Waiting for deploy confirmation (attempt {attempt + 1}/{max_retries})"
+            )
 
-        logger.error(f"Failed to detect or deploy contract for {pair}")
-        raise RuntimeError(f"Aggregator contract not available for {pair}")
+        raise RuntimeError(
+            f"Aggregator contract for {pair} not confirmed after {max_retries} attempts"
+        )
 
     def _create_observer(self, pair: AggregatedPair) -> PairObserver:
         """Create a PairObserver for a trading pair.
@@ -349,7 +367,10 @@ class PriceOracle:
 
                 # Check if it's time to submit
                 if observer.should_submit():
-                    observer.submit()
+                    try:
+                        observer.submit()
+                    except Exception:
+                        logger.exception(f"{pair}: Submit failed, will retry next cycle")
 
             await asyncio.sleep(self.fetch_period)
 

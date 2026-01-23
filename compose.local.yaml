@@ -18,7 +18,7 @@ services:
   oracle:
     build:
       dockerfile: ./Dockerfile.oracle
-    image: "ghcr.io/rube-de/rofl-price-oracle:local"
+    image: "ghcr.io/oasisprotocol/rofl-price-oracle:latest"
     platform: linux/amd64
     restart: on-failure
     environment:

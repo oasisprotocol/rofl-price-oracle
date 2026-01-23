@@ -73,9 +73,14 @@ class BatchFetchCoordinator:
         # Group pairs by source based on support
         source_pairs: dict[str, list[tuple[str, str]]] = {}
         for source, fetcher in self.fetchers.items():
+            # Check pair support concurrently (supports_pair is async)
+            support_checks = await asyncio.gather(
+                *(fetcher.supports_pair(pair[0], pair[1]) for pair in pairs),
+                return_exceptions=True,
+            )
             supported_pairs = [
-                pair for pair in pairs
-                if fetcher.supports_pair(pair[0], pair[1])
+                pair for pair, supported in zip(pairs, support_checks, strict=True)
+                if supported is True
                 and (
                     active_sources is None
                     or source in active_sources.get(f"{pair[0]}/{pair[1]}", [source])

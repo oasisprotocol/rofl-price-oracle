@@ -11,8 +11,8 @@ off-chain sources and submits the median price to Sapphire smart contracts.
 ├──────────────────────────────────────────────────────────────┤
 │  Coinbase ──┐                                                │
 │  Kraken  ───┤                                                │
-│  Bitstamp ──┼──► PriceAggregator ──► median ──► Observation │
-│  CoinGecko ─┤     (outlier detection)            Buffer     │
+│  Bitstamp ──┼──► PriceAggregator ──► median ──► Observation  │
+│  CoinGecko ─┤     (outlier detection)            Buffer      │
 │  CMC ───────┘                                       │        │
 │                                                     ▼        │
 │                              Every submit_period: Submit     │
@@ -52,22 +52,11 @@ off-chain sources and submits the median price to Sapphire smart contracts.
 # Clone and enter project root
 cd rofl-price-oracle
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install the oracle package and runtime dependencies (from pyproject.toml)
-pip install .
-
-# (Optional) Install development extras (tests, linters)
-pip install .[dev]
+# Install all dependencies (runtime + dev) via uv
+make install
 ```
 
-Or, using the root-level `Makefile`:
-
-```bash
-make install   # installs .[dev] using pyproject.toml
-```
+This runs `uv sync --all-extras` under the hood (see `oracle/Makefile`).
 
 ### Running the Oracle
 
@@ -79,9 +68,10 @@ Use `compose.local.yaml` for local development against `sapphire-localnet`:
 
 ```bash
 # 1. Start sapphire-localnet (if not already running)
-docker run -d -p8545:8545 -p8546:8546 ghcr.io/oasisprotocol/sapphire-localnet -test-mnemonic
+docker run -it --rm -p8544-8548:8544-8548 --platform linux/x86_64 ghcr.io/oasisprotocol/sapphire-localnet
 
 # 2. Deploy mock contracts
+PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 
 cd contracts && forge script script/DeployMocks.s.sol --rpc-url sapphire-localnet --broadcast && cd ..
 
 # 3. Configure environment

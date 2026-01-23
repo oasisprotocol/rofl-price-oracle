@@ -48,7 +48,7 @@ class PairObserver:
         fetchers: dict[str, BaseFetcher],
         submit_period: int = 300,
         min_sources: int = 2,
-        max_deviation_percent: float = 5.0,
+        max_deviation_percent: float | None = 5.0,
         drift_limit_percent: float | None = 10.0,
         gas_price_fn: Callable[[], int] | None = None,
     ) -> None:
@@ -158,7 +158,10 @@ class PairObserver:
                 )
             return False, None
 
-        # Update state
+        # Update drift anchor to latest median.
+        # NOTE: This anchors drift to the last *fetch*, not the last *submission*.
+        # Gradual price moves accumulate across fetch cycles without triggering
+        # the drift limit. This is acceptable for trusted exchange API sources.
         median_price = agg_result.price
         assert median_price is not None
         self.last_good_median = median_price
@@ -202,14 +205,15 @@ class PairObserver:
     def submit(self) -> bool:
         """Submit accumulated observations on-chain.
 
-        Takes median of observations, submits to contract, and resets state.
+        Takes median of observations, submits to contract, and verifies
+        on-chain state before resetting local state.
 
-        :returns: True if submission was successful.
+        :returns: True if submission was confirmed on-chain.
         """
         if not self.observations:
             return False
 
-        self.round_id += 1
+        target_round = self.round_id + 1
 
         # Take median of accumulated observations
         sorted_obs = sorted(self.observations)
@@ -218,25 +222,46 @@ class PairObserver:
         # Build transaction
         gas_price = self.gas_price_fn() if self.gas_price_fn else 0
         tx_params = self.contract.functions.submitObservation(
-            self.round_id,
+            target_round,
             final_price,
             self.observations[0][1],  # startedAt
             self.observations[-1][1],  # updatedAt
         ).build_transaction({"gasPrice": gas_price})
 
-        # Submit
-        result = self.rofl_utility.submit_tx(tx_params)
-        logger.info(
-            f"{self.pair}: Round {self.round_id} submitted "
-            f"(price=${final_price / 10**self.decimals:.6f}, "
-            f"observations={len(self.observations)}). Result: {result}"
+        # Submit and verify on-chain state
+        try:
+            result = self.rofl_utility.submit_tx(tx_params)
+            logger.info(
+                f"{self.pair}: Round {target_round} submitted "
+                f"(price=${final_price / 10**self.decimals:.6f}, "
+                f"observations={len(self.observations)}). Result: {result}"
+            )
+        except Exception:
+            logger.exception(f"{self.pair}: Round {target_round} submission failed")
+            return False
+
+        # Verify execution by reading on-chain round_id
+        try:
+            latest_round_data = self.contract.functions.latestRoundData().call()
+            on_chain_round = latest_round_data[0]
+        except Exception:
+            logger.exception(
+                f"{self.pair}: Failed to verify on-chain state after submission"
+            )
+            # Conservatively keep observations — next cycle will resync
+            return False
+
+        if on_chain_round >= target_round:
+            self.round_id = on_chain_round
+            self.last_submit = time.time()
+            self.observations = []
+            return True
+
+        logger.warning(
+            f"{self.pair}: Round {target_round} not confirmed on-chain "
+            f"(chain round={on_chain_round}). Retaining observations for retry."
         )
-
-        # Reset state
-        self.last_submit = time.time()
-        self.observations = []
-
-        return True
+        return False
 
     def _format_price(self, source: str, price: float) -> str:
         """Format price with API key indicator for logging.

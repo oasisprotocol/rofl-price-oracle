@@ -111,22 +111,22 @@ class PriceAggregator:
     def __init__(
         self,
         min_sources: int = 2,
-        max_deviation_percent: float = 5.0,
+        max_deviation_percent: float | None = 5.0,
         drift_limit_percent: float | None = None,
     ) -> None:
         """Initialize the aggregator.
 
         :param min_sources: Minimum number of valid sources required for aggregation.
         :param max_deviation_percent: Maximum allowed deviation from median before
-            a source is considered an outlier (default 5%).
+            a source is considered an outlier (default 5%). None disables the check.
         :param drift_limit_percent: Optional maximum allowed change vs previous price.
             If exceeded, aggregation fails. None disables the check.
         :raises ValueError: If parameters are invalid.
         """
         if min_sources < 1:
             raise ValueError("min_sources must be at least 1")
-        if max_deviation_percent <= 0:
-            raise ValueError("max_deviation_percent must be positive")
+        if max_deviation_percent is not None and max_deviation_percent <= 0:
+            raise ValueError("max_deviation_percent must be positive if specified")
         if drift_limit_percent is not None and drift_limit_percent <= 0:
             raise ValueError("drift_limit_percent must be positive if specified")
 
@@ -174,16 +174,18 @@ class PriceAggregator:
         # Step 2: Calculate initial median
         initial_median = _median(valid.values())
 
-        # Step 3: Filter outliers
-        filtered: dict[str, float] = {}
+        # Step 3: Filter outliers (skip if max_deviation_percent is None)
         dropped: dict[str, float] = {}
-
-        for source, price in valid.items():
-            deviation = abs(price - initial_median) / initial_median * 100
-            if deviation <= self.max_deviation_percent:
-                filtered[source] = price
-            else:
-                dropped[source] = price
+        if self.max_deviation_percent is not None:
+            filtered: dict[str, float] = {}
+            for source, price in valid.items():
+                deviation = abs(price - initial_median) / initial_median * 100
+                if deviation <= self.max_deviation_percent:
+                    filtered[source] = price
+                else:
+                    dropped[source] = price
+        else:
+            filtered = dict(valid)
 
         if len(filtered) < self.min_sources:
             return AggregationResult(

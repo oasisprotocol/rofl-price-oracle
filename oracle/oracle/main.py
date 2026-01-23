@@ -124,7 +124,7 @@ Environment variables (CLI args take precedence):
         "--max-deviation",
         dest="max_deviation",
         type=float,
-        help="Max price deviation percent before excluding outlier (default: 5.0)",
+        help="Max price deviation percent before excluding outlier (default: 5.0, 0 to disable)",
         default=float(os.environ.get("MAX_DEVIATION_PERCENT") or "5.0"),
     )
 
@@ -247,6 +247,10 @@ Environment variables (CLI args take precedence):
     if not price_feed_address:
         parser.error(f"No price feed address configured for network {args.network}")
 
+    # Handle deviation limit (0 means disabled)
+    if args.max_deviation < 0:
+        parser.error("--max-deviation cannot be negative; use 0 to disable")
+    max_deviation = args.max_deviation if args.max_deviation > 0 else None
     # Handle drift limit (0 means disabled)
     drift_limit = args.drift_limit if args.drift_limit > 0 else None
 
@@ -259,7 +263,8 @@ Environment variables (CLI args take precedence):
     logger.info(f"Trading Pairs:     {', '.join(pairs)}")
     logger.info(f"Sources:           {', '.join(sources)}")
     logger.info(f"Min Sources:       {args.min_sources}")
-    logger.info(f"Max Deviation:     {args.max_deviation}%")
+    dev_msg = f"{args.max_deviation}%" if max_deviation else "disabled"
+    logger.info(f"Max Deviation:     {dev_msg}")
     drift_msg = f"{args.drift_limit}%" if drift_limit else "disabled"
     logger.info(f"Drift Limit:       {drift_msg}")
     logger.info(f"Fetch Period:      {args.fetch_period}s")
@@ -280,7 +285,7 @@ Environment variables (CLI args take precedence):
             fetch_period=args.fetch_period,
             submit_period=args.submit_period,
             min_sources=args.min_sources,
-            max_deviation_percent=args.max_deviation,
+            max_deviation_percent=max_deviation,
             drift_limit_percent=drift_limit,
             fetch_timeout=args.fetch_timeout,
         )
