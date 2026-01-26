@@ -1,1 +1,50 @@
+# ROFL
 *.orc
+
+# Environment
+.env
+.env.local
+!.env.example
+.env.testnet
+.env.prod
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.ruff_cache/
+
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# Dependencies (installed via soldeer/forge)
+contracts/dependencies/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Configuration files that might contain secrets
+config.local.*
+*.local.*
+!compose.local.yaml

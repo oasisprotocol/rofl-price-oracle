@@ -1,10 +1,12 @@
 # Compiler files
 cache/
 out/
+dependencies/
 
 # Ignores development broadcast logs
 !/broadcast
 /broadcast/*/31337/
+/broadcast/*/23293/
 /broadcast/**/dry-run/
 
 # Docs
